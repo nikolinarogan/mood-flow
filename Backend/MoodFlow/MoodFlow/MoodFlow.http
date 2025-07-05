@@ -1,0 +1,6 @@
+@MoodFlow_HostAddress = http://localhost:5055
+
+GET {{MoodFlow_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
