@@ -145,7 +145,7 @@ const handleChangePassword = async () => {
 
 <style scoped>
 .profile-container {
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   display: flex;
   align-items: center;
   justify-content: center;

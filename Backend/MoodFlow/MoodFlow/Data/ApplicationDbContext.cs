@@ -8,6 +8,7 @@ namespace MoodFlow.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<DiaryItem> DiaryItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -17,6 +18,16 @@ namespace MoodFlow.Data
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<DiaryItem>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(di => di.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DiaryItem>()
+                .HasIndex(di => new { di.UserId, di.CreatedAt })
                 .IsUnique();
         }
     }

@@ -54,15 +54,11 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('token')
     },
 
-    // Initialize user session from stored token
     async initializeAuth() {
       const token = localStorage.getItem('token')
       if (token) {
         this.token = token
         this.isAuthenticated = true
-        
-        // Don't set generic user data - let the user data be fetched when needed
-        // The user object will be populated when the user navigates to pages that need it
       }
     }
   }
