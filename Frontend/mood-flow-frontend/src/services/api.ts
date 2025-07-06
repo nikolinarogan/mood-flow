@@ -15,4 +15,11 @@ api.interceptors.request.use((config) => {
     return config
 })
 
+// Auth methods
+export const authAPI = {
+    login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+    register: (data: { email: string; password: string; username: string }) => api.post('/auth/register', data),
+    changeUsername: (data: { newUsername: string; password: string }) => api.post('/auth/change-username', data)
+}
+
 export default api

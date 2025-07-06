@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MoodFlow.DTOs;
 using MoodFlow.Services;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace MoodFlow.Controllers
 {
@@ -63,6 +66,67 @@ namespace MoodFlow.Controllers
                 {
                     return BadRequest(new { message = "Invalid or expired verification token." });
                 }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("change-username")]
+        [Authorize]
+        public async Task<ActionResult> ChangeUsername([FromBody] JsonElement request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid user token" });
+                }
+
+                string newUsername = request.GetProperty("newUsername").GetString() ?? "";
+                if (string.IsNullOrEmpty(newUsername))
+                {
+                    return BadRequest(new { message = "New username is required" });
+                }
+                
+                await _authService.ChangeUsernameAsync(userId, newUsername);
+                return Ok(new { message = "Username updated successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<ActionResult> ChangePassword([FromBody] JsonElement request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid user token" });
+                }
+
+                string currentPassword = request.GetProperty("currentPassword").GetString() ?? "";
+                string newPassword = request.GetProperty("newPassword").GetString() ?? "";
+
+                if (string.IsNullOrEmpty(currentPassword))
+                {
+                    return BadRequest(new { message = "Current password is required" });
+                }
+
+                if (string.IsNullOrEmpty(newPassword))
+                {
+                    return BadRequest(new { message = "New password is required" });
+                }
+
+                await _authService.ChangePasswordAsync(userId, currentPassword, newPassword);
+                return Ok(new { message = "Password updated successfully!" });
             }
             catch (Exception ex)
             {

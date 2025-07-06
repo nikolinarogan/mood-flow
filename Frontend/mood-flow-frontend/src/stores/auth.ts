@@ -6,29 +6,28 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
     token: localStorage.getItem('token') || null,
-    isAuthenticated: false
+    isAuthenticated: !!localStorage.getItem('token')
   }),
   
   actions: {
     async login(email: string, password: string) {
-        console.log(email, password)
+ 
       try {
         const response = await api.post<AuthResponse>('/auth/login', { email, password })
         this.token = response.data.token
         
 
         this.user = {
-          id: 0, // This will be set by the backend
+          id: 0, 
           username: response.data.username,
           email: response.data.email,
-          isEmailVerified: true, // Assuming verified after login
+          isEmailVerified: true, 
           createdDate: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
         }
         
         this.isAuthenticated = true
         
-        // Add null check before setting localStorage
         if (this.token) {
           localStorage.setItem('token', this.token)
         }
@@ -53,6 +52,18 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.isAuthenticated = false
       localStorage.removeItem('token')
+    },
+
+    // Initialize user session from stored token
+    async initializeAuth() {
+      const token = localStorage.getItem('token')
+      if (token) {
+        this.token = token
+        this.isAuthenticated = true
+        
+        // Don't set generic user data - let the user data be fetched when needed
+        // The user object will be populated when the user navigates to pages that need it
+      }
     }
   }
 })

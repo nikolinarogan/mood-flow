@@ -16,6 +16,8 @@ namespace MoodFlow.Services
         Task<bool> VerifyEmailAsync(string token);
         string GenerateJwtToken(User user);
         string GenerateEmailVerificationToken();
+        Task<bool> ChangeUsernameAsync(int userId, string newUsername);
+        Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
     }
     
     public class AuthService : IAuthService
@@ -137,6 +139,45 @@ namespace MoodFlow.Services
                 .Replace("/", "_")
                 .Replace("+", "-")
                 .Substring(0, 22);
+        }
+
+        public async Task<bool> ChangeUsernameAsync(int userId, string newUsername)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (string.IsNullOrEmpty(newUsername))
+                throw new Exception("New username is required");
+
+            if (await _context.Users.AnyAsync(u => u.Username == newUsername && u.Id != userId))
+                throw new Exception("Username already exists");
+
+            user.Username = newUsername;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (string.IsNullOrEmpty(currentPassword))
+                throw new Exception("Current password is required");
+
+            if (string.IsNullOrEmpty(newPassword))
+                throw new Exception("New password is required");
+
+            if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.Password))
+                throw new Exception("Invalid current password");
+
+            // Hash the new password
+            string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.Password = newPasswordHash;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
