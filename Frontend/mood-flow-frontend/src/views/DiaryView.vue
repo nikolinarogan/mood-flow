@@ -4,7 +4,40 @@
       <h1>My Mood Diary</h1>
       <p class="diary-subtitle">Track your daily moods and emotions</p>
     </div>
+    <div class="filter-section">
+  <button @click="showFilters = !showFilters" class="filter-toggle">
+    {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+  </button>
+  
+  <div v-if="showFilters" class="filter-controls">
+    <div class="filter-group">
+      <label>Filter by Emotion:</label>
+      <select v-model="selectedEmotionFilter" class="filter-select">
+        <option v-for="option in emotionFilterOptions" 
+                :key="option.value" 
+                :value="option.value">
+          {{ option.emoji }} {{ option.label }}
+        </option>
+      </select>
+    </div>
     
+    <div class="filter-group">
+      <label>Filter by Grade:</label>
+      <select v-model="selectedGradeFilter" class="filter-select">
+        <option v-for="option in gradeFilterOptions" 
+                :key="option.value" 
+                :value="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+    
+    <button @click="clearFilters" class="clear-filters-btn">
+      Clear Filters
+    </button>
+  </div>
+
+</div>
     <div class="diary-content">
       <div class="calendar-section">
         <div class="calendar-header">
@@ -16,35 +49,36 @@
             <span>▶</span>
           </button>
         </div>
-        
+
         <div class="calendar">
           <div class="calendar-weekdays">
             <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
           </div>
           
           <div class="calendar-days">
-                         <div 
-               v-for="day in calendarDays" 
-               :key="day.date"
-               :class="[
-                 'calendar-day',
-                 { 'other-month': !day.isCurrentMonth },
-                 { 'today': day.isToday },
-                 { 'selected': day.isSelected }
-               ]"
-               @click="selectDate(day)"
-             >
-               <span class="day-number">{{ day.dayNumber }}</span>
-               <div v-if="day.mood" class="mood-indicator" :class="`mood-${day.mood}`">
-                 {{ getMoodEmoji(day.mood) }}
-               </div>
-               <div v-if="day.rating > 0" class="rating-indicator">
-                 <span class="rating-stars">
-                   {{ '★'.repeat(day.rating) }}{{ '☆'.repeat(5 - day.rating) }}
-                 </span>
-               </div>
-             </div>
-          </div>
+  <div 
+    v-for="day in calendarDays" 
+    :key="day.date"
+    :class="[
+      'calendar-day',
+      { 'other-month': !day.isCurrentMonth },
+      { 'today': day.isToday },
+      { 'selected': day.isSelected },
+      { 'filtered-out': !day.isVisible && (selectedEmotionFilter !== 'all' || selectedGradeFilter !== 'all') }
+    ]"
+    @click="selectDate(day)"
+  >
+    <span class="day-number">{{ day.dayNumber }}</span>
+    <div v-if="day.mood && day.isVisible" class="mood-indicator" :class="`mood-${day.mood}`">
+      {{ getMoodEmoji(day.mood) }}
+    </div>
+    <div v-if="day.rating > 0 && day.isVisible" class="rating-indicator">
+      <span class="rating-stars">
+        {{ '★'.repeat(day.rating) }}{{ '☆'.repeat(5 - day.rating) }}
+      </span>
+    </div>
+  </div>
+</div>
         </div>
       </div>
       
@@ -136,6 +170,10 @@ const sentiment = ref(null)
 const moodEntries = ref<Record<string, { mood: string; rating: number; notes: string }>>({})
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+const selectedEmotionFilter = ref('all')
+const selectedGradeFilter = ref('all')
+const showFilters = ref(false)
+
 const moodOptions = [
   { value: 'happy', label: 'Happy', emoji: '😊' },
   { value: 'excited', label: 'Excited', emoji: '🎉' },
@@ -146,6 +184,51 @@ const moodOptions = [
   { value: 'angry', label: 'Angry', emoji: '😠' },
   { value: 'tired', label: 'Tired', emoji: '😴' }
 ]
+
+const emotionFilterOptions = [
+  {value: 'all', label: 'All emotions'},
+  { value: 'happy', label: 'Happy', emoji: '😊' },
+  { value: 'excited', label: 'Excited', emoji: '🎉' },
+  { value: 'calm', label: 'Calm', emoji: '😌' },
+  { value: 'neutral', label: 'Neutral', emoji: '😐' },
+  { value: 'sad', label: 'Sad', emoji: '😢' },
+  { value: 'anxious', label: 'Anxious', emoji: '😰' },
+  { value: 'angry', label: 'Angry', emoji: '😠' },
+  { value: 'tired', label: 'Tired', emoji: '😴' }
+]
+
+const gradeFilterOptions = [
+  { value: 'all', label: 'All Grades' },
+  { value: '1', label: 'Grade 1' },
+  { value: '2', label: 'Grade 2' },
+  { value: '3', label: 'Grade 3' },
+  { value: '4', label: 'Grade 4' },
+  { value: '5', label: 'Grade 5' }
+]
+
+const filteredEntries = computed(() => {
+  const entries = Object.entries(moodEntries.value).map(([date, entry]) => ({
+    date,
+    ...entry
+  }))
+
+  return entries.filter(entry => {
+    const emotionMatch = selectedEmotionFilter.value === 'all' || 
+                        entry.mood === selectedEmotionFilter.value
+    const gradeMatch = selectedGradeFilter.value === 'all' || 
+                      entry.rating?.toString() === selectedGradeFilter.value
+    
+    return emotionMatch && gradeMatch
+  })
+})
+const clearFilters = () => {
+  selectedEmotionFilter.value = 'all'
+  selectedGradeFilter.value = 'all'
+}
+
+const getFilteredEntriesCount = computed(() => {
+  return filteredEntries.value.length
+})
    watch(entryNotes, async (newNote) => {
      if (newNote.trim().length > 0) {
        sentiment.value = await analyzeSentiment(newNote)
@@ -197,6 +280,17 @@ const calendarDays = computed(() => {
     const dateKey = date.toISOString().split('T')[0]
     const moodEntry = moodEntries.value[dateKey]
     
+    // Check if this entry matches current filters
+    const emotionMatch = selectedEmotionFilter.value === 'all' || 
+                        !moodEntry || 
+                        moodEntry.mood === selectedEmotionFilter.value
+    
+    const gradeMatch = selectedGradeFilter.value === 'all' || 
+                      !moodEntry || 
+                      moodEntry.rating?.toString() === selectedGradeFilter.value
+    
+    const isVisible = emotionMatch && gradeMatch
+    
     days.push({
       date: dateKey,
       dayNumber: date.getDate(),
@@ -204,7 +298,8 @@ const calendarDays = computed(() => {
       isToday: date.toDateString() === today.toDateString(),
       isSelected: date.toDateString() === selectedDate.value.toDateString(),
       mood: moodEntry?.mood || null,
-       rating: moodEntry?.rating || 0 
+      rating: moodEntry?.rating || 0,
+      isVisible: isVisible
     })
   }
   
@@ -679,5 +774,94 @@ onMounted(async () => {
   .diary-header h1 {
     font-size: 2rem;
   }
+}
+
+.filter-section {
+  margin-bottom: 20px;
+}
+
+.filter-toggle {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.filter-controls {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 20px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.clear-filters-btn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.clear-filters-btn:hover {
+  background: #ff5252;
+}
+
+.filtered-count {
+  margin-top: 10px;
+  color: #666;
+  font-size: 14px;
+}
+.calendar-day.filtered-out {
+  opacity: 0.3;
+  background: rgba(200, 200, 200, 0.5);
+  cursor: not-allowed;
+}
+
+.calendar-day.filtered-out:hover {
+  transform: none;
+  background: rgba(200, 200, 200, 0.5);
+}
+
+.calendar-day.filtered-out .mood-indicator,
+.calendar-day.filtered-out .rating-indicator {
+  display: none;
 }
 </style> 
