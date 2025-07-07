@@ -102,6 +102,7 @@
                placeholder="Write about your day, thoughts, or feelings..."
                rows="4"
              ></textarea>
+             <MoodAlert :sentiment="sentiment" />
            </div>
            
            <button @click="saveEntry" class="save-btn" :disabled="!selectedMood || selectedRating === 0">
@@ -118,6 +119,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
+import MoodAlert from '@/components/MoodAlert.vue'
+import { analyzeSentiment } from '@/services/api'
+import { watch } from 'vue'
 
 const authStore = useAuthStore()
 
@@ -128,14 +132,8 @@ const selectedMood = ref('')
 const selectedRating = ref(0)
 const entryNotes = ref('')
 const saving = ref(false)
-
-// Mock data for demonstration
-const moodEntries = ref<Record<string, { mood: string; notes: string }>>({
-  '2024-01-15': { mood: 'happy', notes: 'Had a great day at work!' },
-  '2024-01-16': { mood: 'calm', notes: 'Peaceful evening walk' },
-  '2024-01-17': { mood: 'excited', notes: 'New project started' }
-})
-
+const sentiment = ref(null)
+const moodEntries = ref<Record<string, { mood: string; rating: number; notes: string }>>({})
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const moodOptions = [
@@ -148,7 +146,14 @@ const moodOptions = [
   { value: 'angry', label: 'Angry', emoji: '😠' },
   { value: 'tired', label: 'Tired', emoji: '😴' }
 ]
-
+   watch(entryNotes, async (newNote) => {
+     if (newNote.trim().length > 0) {
+       sentiment.value = await analyzeSentiment(newNote)
+     } else {
+       sentiment.value = null
+     }
+   })
+   
 const currentMonthYear = computed(() => {
   return currentDate.value.toLocaleDateString('en-US', { 
     month: 'long', 
@@ -169,7 +174,10 @@ const selectedDateMood = computed(() => {
   const dateKey = selectedDate.value.toISOString().split('T')[0]
   return moodEntries.value[dateKey]?.mood || null
 })
-
+   const selectedDateRating = computed(() => {
+     const dateKey = selectedDate.value.toISOString().split('T')[0]
+     return moodEntries.value[dateKey]?.rating || 0
+   })
 const calendarDays = computed(() => {
   const year = currentDate.value.getFullYear()
   const month = currentDate.value.getMonth()
@@ -195,7 +203,8 @@ const calendarDays = computed(() => {
       isCurrentMonth: date.getMonth() === month,
       isToday: date.toDateString() === today.toDateString(),
       isSelected: date.toDateString() === selectedDate.value.toDateString(),
-      mood: moodEntry?.mood || null
+      mood: moodEntry?.mood || null,
+       rating: moodEntry?.rating || 0 
     })
   }
   
@@ -268,7 +277,7 @@ const loadEntries = async () => {
     const response = await api.get('/diaryitem/all')
     const entries = response.data.data
     
-    // Convert backend entries to frontend format
+
     entries.forEach((entry: any) => {
       const dateKey = new Date(entry.createdAt).toISOString().split('T')[0]
       moodEntries.value[dateKey] = {
@@ -283,10 +292,9 @@ const loadEntries = async () => {
 }
 
 onMounted(async () => {
-  // Load existing entries from backend
+ 
   await loadEntries()
   
-  // Initialize with today's date
   selectDate({
     date: new Date().toISOString().split('T')[0],
     dayNumber: new Date().getDate(),

@@ -61,6 +61,47 @@ namespace MoodFlow.Controllers
             }
         }
 
+        [HttpPost("create-with-sentiment")]
+        public async Task<ActionResult> CreateWithSentimentAnalysis([FromBody] CreateDiaryItemWithSentimentRequest request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid user token" });
+                }
+
+                var diaryItem = await _diaryService.CreateWithSentimentAnalysis(userId, request.Grade, request.Note);
+
+                return Ok(new
+                {
+                    message = "Diary entry created successfully with sentiment analysis!",
+                    data = new DiaryItemResponse
+                    {
+                        Id = diaryItem.Id,
+                        Emotion = diaryItem.Emotion,
+                        Grade = diaryItem.Grade,
+                        Note = diaryItem.Note,
+                        CreatedAt = diaryItem.CreatedAt
+                    }
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating diary entry with sentiment analysis");
+                return StatusCode(500, new { message = "An error occurred while creating the diary entry" });
+            }
+        }
+
         [HttpGet("today")]
         public ActionResult GetTodayEntry()
         {
