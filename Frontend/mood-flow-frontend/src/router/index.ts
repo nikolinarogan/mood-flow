@@ -5,6 +5,7 @@ import RegisterView from '../views/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import DiaryView from '@/views/DiaryView.vue'
 import QuotesView from '@/views/QuotesView.vue'
+import FavouritesView from '@/views/FavouritesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/quotes',
       name: 'Quotes',
       component: QuotesView
+    },
+    {
+      path: '/favourites',
+      name: 'favourites',
+      component: FavouritesView
     }
   ]
 })

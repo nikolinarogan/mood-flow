@@ -46,6 +46,7 @@ builder.Services.AddScoped<IDiaryItemService, DiaryItemService>();
 builder.Services.AddScoped<ISentimentAnalysisService, SentimentAnalysisService>();
 builder.Services.AddScoped<QuoteService>();
 builder.Services.AddHttpClient();
+builder.Services.AddHostedService<DailyQuoteService>();
 
 var app = builder.Build();
 

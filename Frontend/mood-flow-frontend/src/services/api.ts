@@ -14,7 +14,9 @@ api.interceptors.request.use((config) => {
     }
     return config
 })
-
+export function toggleFavouriteQuote(id: number) {
+  return api.post(`/quote/favourite/${id}`);
+}
 export const authAPI = {
     login: (data: { email: string; password: string }) => api.post('/auth/login', data),
     register: (data: { email: string; password: string; username: string }) => api.post('/auth/register', data),
@@ -36,5 +38,9 @@ export function updateDiaryEntry(id: number, data: { emotion: string; grade: num
 
 export function deleteDiaryEntry(id: number) {
   return api.delete(`/diaryitem/delete/${id}`);
+}
+
+export function getUserFavourites() {
+  return api.get('/quote/favourites');
 }
 export default api

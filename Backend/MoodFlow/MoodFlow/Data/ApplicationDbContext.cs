@@ -10,6 +10,7 @@ namespace MoodFlow.Data
         public DbSet<User> Users { get; set; }
         public DbSet<DiaryItem> DiaryItems { get; set; }
         public DbSet<Quote> Quotes { get; set; }
+        public DbSet<UserQuote> UserQuotes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +31,9 @@ namespace MoodFlow.Data
             modelBuilder.Entity<DiaryItem>()
                 .HasIndex(di => new { di.UserId, di.CreatedAt })
                 .IsUnique();
+
+            modelBuilder.Entity<UserQuote>()
+                .HasKey(ufq => new { ufq.UserId, ufq.QuoteId });
         }
     }
 }
