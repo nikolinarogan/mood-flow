@@ -22,4 +22,5 @@ namespace MoodFlow.DTOs
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
 } 

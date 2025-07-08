@@ -9,8 +9,8 @@ namespace MoodFlow.Services
         Task<DiaryItem> CreateWithSentimentAnalysis(int userId, int grade, string? note = null);
         DiaryItem? GetByDate(int userId, DateTime date);
         List<DiaryItem> GetByUserId(int userId);
-        bool Update(int id, string emotion, int grade, string? note = null);
-        bool Delete(int id);
+        bool Update(int id, string emotion, int grade, int userId, string? note = null);
+        bool Delete(int id, int userId);
         Task<SentimentResponse> AnalyzeNoteSentimentAsync(string note);
     }
     
@@ -124,10 +124,12 @@ namespace MoodFlow.Services
                 .ToList();
         }
 
-        public bool Update(int id, string emotion, int grade, string? note = null)
+        public bool Update(int id, string emotion, int grade, int userId, string? note = null)
         {
             var diaryItem = _context.DiaryItems.Find(id);
             if (diaryItem == null)
+                return false;
+            if(userId != diaryItem.UserId)
                 return false;
 
             diaryItem.Emotion = emotion;
@@ -138,10 +140,12 @@ namespace MoodFlow.Services
             return true;
         }
 
-        public bool Delete(int id)
+        public bool Delete(int id, int userId)
         {
             var diaryItem = _context.DiaryItems.Find(id);
             if (diaryItem == null)
+                return false;
+            if(userId != diaryItem.UserId)
                 return false;
 
             _context.DiaryItems.Remove(diaryItem);

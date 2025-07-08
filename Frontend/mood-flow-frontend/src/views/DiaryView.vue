@@ -96,6 +96,11 @@
                </span>
                ({{ selectedDateRating }}/5)
              </p>
+             <!-- Edit/Delete Buttons -->
+             <div class="entry-actions" style="margin-top: 10px;">
+               <button v-if="!isEditing && (selectedDateMood || selectedDateRating > 0)" @click="startEditEntry" class="edit-btn">Edit</button>
+               <button v-if="!isEditing && (selectedDateMood || selectedDateRating > 0)" @click="deleteCurrentEntry" class="delete-btn">Delete</button>
+             </div>
            </div>
          </div>
         
@@ -147,6 +152,23 @@
       </div>
     </div>
   </div>
+  <!-- Edit Form Modal -->
+  <div v-if="isEditing" class="edit-modal">
+    <form @submit.prevent="submitEditEntry" class="edit-form">
+      <label>Emotion</label>
+      <select v-model="editForm.emotion">
+        <option v-for="mood in moodOptions" :key="mood.value" :value="mood.value">{{ mood.emoji }} {{ mood.label }}</option>
+      </select>
+      <label>Grade</label>
+      <input v-model.number="editForm.grade" type="number" min="1" max="5" />
+      <label>Note</label>
+      <textarea v-model="editForm.note" rows="3"></textarea>
+      <div style="margin-top:10px;">
+        <button type="submit" class="save-btn">Save</button>
+        <button type="button" @click="cancelEditEntry" class="cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -156,6 +178,7 @@ import api from '@/services/api'
 import MoodAlert from '@/components/MoodAlert.vue'
 import { analyzeSentiment } from '@/services/api'
 import { watch } from 'vue'
+import { updateDiaryEntry, deleteDiaryEntry } from '@/services/api'
 
 const authStore = useAuthStore()
 
@@ -167,12 +190,22 @@ const selectedRating = ref(0)
 const entryNotes = ref('')
 const saving = ref(false)
 const sentiment = ref(null)
-const moodEntries = ref<Record<string, { mood: string; rating: number; notes: string }>>({})
+// Update moodEntries type to include id
+const moodEntries = ref<Record<string, { id: number; mood: string; rating: number; notes: string }>>({})
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const selectedEmotionFilter = ref('all')
 const selectedGradeFilter = ref('all')
 const showFilters = ref(false)
+
+const isEditing = ref(false)
+// Update editForm to include id
+const editForm = ref({
+  id: 0,
+  emotion: '',
+  grade: 0,
+  note: ''
+})
 
 const moodOptions = [
   { value: 'happy', label: 'Happy', emoji: '😊' },
@@ -347,6 +380,7 @@ const saveEntry = async () => {
     // Update local state with the response data
     const dateKey = selectedDate.value.toISOString().split('T')[0]
     moodEntries.value[dateKey] = {
+      id: response.data.data.id, // Store the new ID
       mood: response.data.data.emotion,
       rating: response.data.data.grade,
       notes: response.data.data.note || ''
@@ -371,11 +405,11 @@ const loadEntries = async () => {
   try {
     const response = await api.get('/diaryitem/all')
     const entries = response.data.data
-    
 
     entries.forEach((entry: any) => {
       const dateKey = new Date(entry.createdAt).toISOString().split('T')[0]
       moodEntries.value[dateKey] = {
+        id: entry.id, // store id
         mood: entry.emotion,
         rating: entry.grade,
         notes: entry.note || ''
@@ -383,6 +417,66 @@ const loadEntries = async () => {
     })
   } catch (error) {
     console.error('Failed to load entries:', error)
+  }
+}
+
+function startEditEntry() {
+  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  const entry = moodEntries.value[dateKey]
+  if (entry) {
+    editForm.value.id = entry.id
+    editForm.value.emotion = entry.mood
+    editForm.value.grade = entry.rating
+    editForm.value.note = entry.notes
+    isEditing.value = true
+  }
+}
+
+function cancelEditEntry() {
+  isEditing.value = false
+}
+
+async function submitEditEntry() {
+  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  const entry = moodEntries.value[dateKey]
+  if (!entry) return
+  try {
+    await updateDiaryEntry(entry.id, {
+      emotion: editForm.value.emotion,
+      grade: editForm.value.grade,
+      note: editForm.value.note
+    })
+    // Update local state
+    moodEntries.value[dateKey] = {
+      id: entry.id,
+      mood: editForm.value.emotion,
+      rating: editForm.value.grade,
+      notes: editForm.value.note
+    }
+    selectedMood.value = editForm.value.emotion;
+    selectedRating.value = editForm.value.grade;
+    entryNotes.value = editForm.value.note;
+    isEditing.value = false
+  } catch (error) {
+    console.error('Failed to update entry:', error)
+  }
+}
+
+async function deleteCurrentEntry() {
+  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  const entry = moodEntries.value[dateKey]
+  if (!entry) return
+  if (confirm('Are you sure you want to delete this entry?')) {
+    try {
+      await deleteDiaryEntry(entry.id)
+      // Remove from local state
+      delete moodEntries.value[dateKey]
+      selectedMood.value = ''
+      selectedRating.value = 0
+      entryNotes.value = ''
+    } catch (error) {
+      console.error('Failed to delete entry:', error)
+    }
   }
 }
 
@@ -863,5 +957,143 @@ onMounted(async () => {
 .calendar-day.filtered-out .mood-indicator,
 .calendar-day.filtered-out .rating-indicator {
   display: none;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.edit-form {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+}
+
+.edit-form label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.edit-form select,
+.edit-form input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.edit-form select:focus,
+.edit-form input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.edit-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.edit-form .save-btn,
+.edit-form .cancel-btn {
+  width: 48%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.edit-form .save-btn:hover:not(:disabled),
+.edit-form .cancel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.edit-form .save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.edit-form .cancel-btn {
+  background: #ff6b6b;
+  margin-left: 4%;
+}
+
+.edit-form .cancel-btn:hover {
+  background: #ff5252;
+}
+.entry-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+  outline: none;
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.18);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  color: #fff;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.18);
 }
 </style> 

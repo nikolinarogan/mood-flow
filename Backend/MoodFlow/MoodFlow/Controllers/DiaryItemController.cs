@@ -225,7 +225,7 @@ namespace MoodFlow.Controllers
                     return Unauthorized(new { message = "Invalid user token" });
                 }
 
-                var success = _diaryService.Update(id, request.Emotion, request.Grade, request.Note);
+                var success = _diaryService.Update(id, request.Emotion, request.Grade, userId, request.Note);
 
                 if (!success)
                 {
@@ -256,7 +256,7 @@ namespace MoodFlow.Controllers
                     return Unauthorized(new { message = "Invalid user token" });
                 }
 
-                var success = _diaryService.Delete(id);
+                var success = _diaryService.Delete(id, userId);
 
                 if (!success)
                 {

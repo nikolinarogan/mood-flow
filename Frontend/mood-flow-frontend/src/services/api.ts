@@ -29,4 +29,12 @@ export async function analyzeSentiment(note: string) {
   if (!res.ok) return null
   return await res.json()
 }
+
+export function updateDiaryEntry(id: number, data: { emotion: string; grade: number; note: string; }) {
+  return api.put(`/diaryitem/update/${id}`, data);
+}
+
+export function deleteDiaryEntry(id: number) {
+  return api.delete(`/diaryitem/delete/${id}`);
+}
 export default api
