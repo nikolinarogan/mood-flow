@@ -938,11 +938,6 @@ onMounted(async () => {
   background: #ff5252;
 }
 
-.filtered-count {
-  margin-top: 10px;
-  color: #666;
-  font-size: 14px;
-}
 .calendar-day.filtered-out {
   opacity: 0.3;
   background: rgba(200, 200, 200, 0.5);

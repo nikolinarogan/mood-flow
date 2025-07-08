@@ -33,6 +33,10 @@
           <span class="nav-icon">✨</span>
           <span class="nav-text">Register</span>
         </router-link>
+        <router-link to="/quotes" class="nav-link quotes-link" active-class="active">
+          <span class="nav-icon">💬</span>
+          <span class="nav-text">Quotes</span>
+        </router-link>
       </div>
       
       <div v-if="isAuthenticated" class="nav-actions">
@@ -202,6 +206,13 @@ const handleLogout = () => {
 
 .logout-text {
   font-size: 14px;
+}
+
+.quotes-link.active {
+  background: linear-gradient(135deg, #ffd700 0%, #43e97b 100%);
+  color: #333 !important;
+  box-shadow: 0 2px 12px rgba(255, 215, 0, 0.18);
+  transform: scale(1.08);
 }
 
 @media (max-width: 768px) {
