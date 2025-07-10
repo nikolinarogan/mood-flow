@@ -172,7 +172,6 @@ namespace MoodFlow.Services
             if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.Password))
                 throw new Exception("Invalid current password");
 
-            // Hash the new password
             string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             user.Password = newPasswordHash;
 

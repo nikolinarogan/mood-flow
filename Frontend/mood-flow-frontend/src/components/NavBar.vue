@@ -24,6 +24,11 @@
           <span class="nav-text">Profile</span>
         </router-link>
         
+        <router-link v-if="isAuthenticated" to="/analytics" class="nav-link" active-class="active">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Analytics</span>
+        </router-link>
+        
         <router-link v-if="!isAuthenticated" to="/login" class="nav-link" active-class="active">
           <span class="nav-icon">🔐</span>
           <span class="nav-text">Login</span>

@@ -43,4 +43,9 @@ export function deleteDiaryEntry(id: number) {
 export function getUserFavourites() {
   return api.get('/quote/favourites');
 }
+
+export function getAnalyticsSummary() {
+  return api.get('/analytics/summary');
+}
+
 export default api
