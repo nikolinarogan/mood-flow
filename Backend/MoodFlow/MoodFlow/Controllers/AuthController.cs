@@ -4,6 +4,7 @@ using MoodFlow.DTOs;
 using MoodFlow.Services;
 using System.Security.Claims;
 using System.Text.Json;
+using MoodFlow.Data;
 
 namespace MoodFlow.Controllers
 {
@@ -13,10 +14,12 @@ namespace MoodFlow.Controllers
     {
 
         private readonly IAuthService _authService;
+        private readonly ApplicationDbContext _context;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ApplicationDbContext context)
         {
             _authService = authService;
+            _context = context;
         }
 
         [HttpPost("register")]
@@ -132,6 +135,36 @@ namespace MoodFlow.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpGet("notification-time")]
+        public async Task<IActionResult> GetNotificationTime()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "Invalid user token" });
+            }
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+            return Ok(new NotificationTimeDto { NotificationTime = user.NotificationTime ?? new TimeSpan(9, 0, 0) });
+        }
+
+        [Authorize]
+        [HttpPost("notification-time")]
+        public async Task<IActionResult> SetNotificationTime([FromBody] NotificationTimeDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "Invalid user token" });
+            }
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+            user.NotificationTime = dto.NotificationTime;
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
 }

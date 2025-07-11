@@ -21,7 +21,7 @@ namespace MoodFlow.Models
         public bool IsEmailVerified { get; set; } = false;
         public string EmailVerificationToken { get; set; } = string.Empty;
         public DateTime? EmailVerificationTokenExp { get; set; } 
-
+        public TimeSpan? NotificationTime { get; set; }
 
 
         public User() { }

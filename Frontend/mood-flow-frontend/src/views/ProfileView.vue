@@ -43,12 +43,21 @@
           <div v-if="passwordChangeMsg" class="change-msg">{{ passwordChangeMsg }}</div>
         </form>
       </div>
+
+      <!-- Notification Time Section -->
+      <div class="change-section">
+        <label for="notification-time">Notification Time:</label>
+        <input id="notification-time" type="time" v-model="notificationTime" />
+        <small>The time is shown and saved in your local timezone (browser time).</small>
+        <button @click="saveTime" :disabled="loading">Save</button>
+        <div v-if="notificationMsg" class="change-msg">{{ notificationMsg }}</div>
+      </div>
           </div>
     </div>
   </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
 
@@ -140,6 +149,58 @@ const handleChangePassword = async () => {
   } catch (err: any) {
     passwordChangeMsg.value = err.response?.data?.message || 'Failed to update password.'
   }
+}
+
+const notificationTime = ref('09:00')
+const loading = ref(false)
+const notificationMsg = ref('')
+
+// Helper to convert HH:mm string to UTC string
+function localToUtcTimeString(localTimeStr: string) {
+  const [hour, minute] = localTimeStr.split(':').map(Number)
+  const now = new Date()
+  now.setHours(hour, minute, 0, 0)
+  // Get UTC hours and minutes
+  const utcHour = now.getUTCHours().toString().padStart(2, '0')
+  const utcMinute = now.getUTCMinutes().toString().padStart(2, '0')
+  return `${utcHour}:${utcMinute}:00`
+}
+
+// Helper to convert UTC string (HH:mm:ss) to local HH:mm
+function utcToLocalTimeString(utcTimeStr: string) {
+  const [utcHour, utcMinute] = utcTimeStr.split(':').map(Number)
+  const now = new Date()
+  now.setUTCHours(utcHour, utcMinute, 0, 0)
+  const localHour = now.getHours().toString().padStart(2, '0')
+  const localMinute = now.getMinutes().toString().padStart(2, '0')
+  return `${localHour}:${localMinute}`
+}
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const res = await api.get('/auth/notification-time')
+    if (res.data && res.data.notificationTime) {
+      notificationTime.value = utcToLocalTimeString(res.data.notificationTime)
+    }
+  } catch (err: any) {
+    notificationMsg.value = 'Failed to load notification time.'
+  }
+  loading.value = false
+})
+
+const saveTime = async () => {
+  loading.value = true
+  notificationMsg.value = ''
+  try {
+    await api.post('/auth/notification-time', {
+      notificationTime: localToUtcTimeString(notificationTime.value)
+    })
+    notificationMsg.value = 'Notification time updated!'
+  } catch (err: any) {
+    notificationMsg.value = err.response?.data?.message || 'Failed to update notification time.'
+  }
+  loading.value = false
 }
 </script>
 
