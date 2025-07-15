@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
-import type { User, AuthResponse, LoginRequest, RegisterRequest } from '@/types/auth'
+import type { User, AuthResponse} from '@/types/auth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -18,12 +18,12 @@ export const useAuthStore = defineStore('auth', {
         
 
         this.user = {
-          id: 0, 
+          id: response.data.id,
           username: response.data.username,
           email: response.data.email,
-          isEmailVerified: true, 
-          createdDate: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString()
+          isEmailVerified: response.data.isEmailVerified,
+          createdDate: response.data.createdDate,
+          lastLoginAt: response.data.lastLoginAt
         }
         
         this.isAuthenticated = true

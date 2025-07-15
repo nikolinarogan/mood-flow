@@ -9,8 +9,12 @@ export interface User {
 
 export interface AuthResponse {
   token: string
+  id: number
   username: string
   email: string
+  isEmailVerified: boolean
+  createdDate: string
+  lastLoginAt?: string
 }
 
 export interface LoginRequest {

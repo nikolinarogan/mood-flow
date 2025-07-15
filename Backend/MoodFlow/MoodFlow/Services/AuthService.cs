@@ -66,8 +66,12 @@ namespace MoodFlow.Services
             return new AuthResponseDto
             {
                 Token = GenerateJwtToken(user),
+                Id = user.Id,
                 Username = user.Username,
-                Email = user.Email
+                Email = user.Email,
+                IsEmailVerified = user.IsEmailVerified,
+                CreatedDate = user.CreatedDate,
+                LastLoginAt = user.LastLoginAt
             };
         }
 
@@ -87,8 +91,12 @@ namespace MoodFlow.Services
             return new AuthResponseDto
             {
                 Token = GenerateJwtToken(user),
+                Id = user.Id,
                 Username = user.Username,
-                Email = user.Email
+                Email = user.Email,
+                IsEmailVerified = user.IsEmailVerified,
+                CreatedDate = user.CreatedDate,
+                LastLoginAt = user.LastLoginAt
             };
         }
 
@@ -126,7 +134,7 @@ namespace MoodFlow.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddDays(7),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: credentials
             );
 
