@@ -78,7 +78,7 @@ namespace MoodFlow.Controllers
 
         [HttpPost("change-username")]
         [Authorize]
-        public async Task<ActionResult> ChangeUsername([FromBody] JsonElement request)
+        public async Task<ActionResult> ChangeUsername([FromBody] AuthChangeUsernameDto dto)
         {
             try
             {
@@ -88,13 +88,12 @@ namespace MoodFlow.Controllers
                     return Unauthorized(new { message = "Invalid user token" });
                 }
 
-                string newUsername = request.GetProperty("newUsername").GetString() ?? "";
-                if (string.IsNullOrEmpty(newUsername))
+                if (string.IsNullOrEmpty(dto.NewUsername))
                 {
                     return BadRequest(new { message = "New username is required" });
                 }
                 
-                await _authService.ChangeUsernameAsync(userId, newUsername);
+                await _authService.ChangeUsernameAsync(userId, dto.NewUsername);
                 return Ok(new { message = "Username updated successfully!" });
             }
             catch (Exception ex)
@@ -105,7 +104,7 @@ namespace MoodFlow.Controllers
 
         [HttpPost("change-password")]
         [Authorize]
-        public async Task<ActionResult> ChangePassword([FromBody] JsonElement request)
+        public async Task<ActionResult> ChangePassword([FromBody] AuthChangePasswordDto dto)
         {
             try
             {
@@ -115,20 +114,17 @@ namespace MoodFlow.Controllers
                     return Unauthorized(new { message = "Invalid user token" });
                 }
 
-                string currentPassword = request.GetProperty("currentPassword").GetString() ?? "";
-                string newPassword = request.GetProperty("newPassword").GetString() ?? "";
-
-                if (string.IsNullOrEmpty(currentPassword))
+                if (string.IsNullOrEmpty(dto.CurrentPassword))
                 {
                     return BadRequest(new { message = "Current password is required" });
                 }
 
-                if (string.IsNullOrEmpty(newPassword))
+                if (string.IsNullOrEmpty(dto.NewPassword))
                 {
                     return BadRequest(new { message = "New password is required" });
                 }
 
-                await _authService.ChangePasswordAsync(userId, currentPassword, newPassword);
+                await _authService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
                 return Ok(new { message = "Password updated successfully!" });
             }
             catch (Exception ex)

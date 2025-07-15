@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { ChangeUsernameRequest, ChangePasswordRequest } from '@/types/auth';
 
 const api = axios.create({
     baseURL: 'https://localhost:7096/api',
@@ -20,7 +21,8 @@ export function toggleFavouriteQuote(id: number) {
 export const authAPI = {
     login: (data: { email: string; password: string }) => api.post('/auth/login', data),
     register: (data: { email: string; password: string; username: string }) => api.post('/auth/register', data),
-    changeUsername: (data: { newUsername: string; password: string }) => api.post('/auth/change-username', data)
+    changeUsername: (data: ChangeUsernameRequest) => api.post('/auth/change-username', data),
+    changePassword: (data: ChangePasswordRequest) => api.post('/auth/change-password', data)
 }
 export async function analyzeSentiment(note: string) {
   const res = await fetch('/api/sentiment/analyze', {
