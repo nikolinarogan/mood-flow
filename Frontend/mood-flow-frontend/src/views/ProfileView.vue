@@ -5,38 +5,34 @@
         <div class="avatar">{{ avatarInitials }}</div>
       </div>
       <h2 class="profile-title">Welcome, {{ user?.username || 'User' }}!</h2>
-      <div class="profile-info">
-        <div class="info-row">
-          <span class="info-label">Username:</span>
-          <span class="info-value">{{ user?.username }}</span>
+      <div class="profile-info centered-info">
+        <div class="info-row centered-row">
+          <span class="info-label"><span class="info-icon">👤</span> Username</span>
         </div>
-        <div class="info-row">
-          <span class="info-label">Email:</span>
-          <span class="info-value">{{ user?.email }}</span>
+        <div class="info-value username-value">{{ user?.username }}</div>
+        <div class="info-row centered-row">
+          <span class="info-label"><span class="info-icon">📧</span> Email</span>
         </div>
-      </div>
-      <div class="profile-footer">
-        <p>Glad to have you on Mood Flow! 🎉</p>
+        <div class="info-value email-value">{{ user?.email }}</div>
       </div>
 
-      <!-- Change Username Section -->
-      <div class="change-section">
+      <div class="change-actions-row">
         <button @click="toggleUsernameForm" class="toggle-btn">
           {{ showUsernameForm ? 'Cancel' : 'Change Username' }}
         </button>
-        <form v-if="showUsernameForm" @submit.prevent="handleChangeUsername" class="change-form">
+        <button @click="togglePasswordForm" class="toggle-btn">
+          {{ showPasswordForm ? 'Cancel' : 'Change Password' }}
+        </button>
+      </div>
+      <div class="change-section" v-if="showUsernameForm">
+        <form @submit.prevent="handleChangeUsername" class="change-form">
           <input v-model="newUsername" placeholder="New username" required />
           <button type="submit">Update Username</button>
           <div v-if="usernameChangeMsg" class="change-msg">{{ usernameChangeMsg }}</div>
         </form>
       </div>
-
-      <!-- Change Password Section -->
-      <div class="change-section">
-        <button @click="togglePasswordForm" class="toggle-btn">
-          {{ showPasswordForm ? 'Cancel' : 'Change Password' }}
-        </button>
-        <form v-if="showPasswordForm" @submit.prevent="handleChangePassword" class="change-form">
+      <div class="change-section" v-if="showPasswordForm">
+        <form @submit.prevent="handleChangePassword" class="change-form">
           <input v-model="currentPassword" type="password" placeholder="Current password" required />
           <input v-model="newPassword" type="password" placeholder="New password" required />
           <button type="submit">Update Password</button>
@@ -45,11 +41,16 @@
       </div>
 
       <!-- Notification Time Section -->
-      <div class="change-section">
-        <label for="notification-time">Notification Time:</label>
-        <input id="notification-time" type="time" v-model="notificationTime" />
-        <small>The time is shown and saved in your local timezone (browser time).</small>
-        <button @click="saveTime" :disabled="loading">Save</button>
+      <div class="change-section notification-row">
+        <div class="notification-info-label">
+          <span class="notification-info-icon">⏰</span>
+          <span class="notification-info-text">Select the time you want to receive your daily email reminder:</span>
+        </div>
+        <div class="notification-row-inner">
+          <label for="notification-time">Notification Time:</label>
+          <input id="notification-time" type="time" v-model="notificationTime" />
+          <button @click="saveTime" :disabled="loading" class="notification-save-btn">Save</button>
+        </div>
         <div v-if="notificationMsg" class="change-msg">{{ notificationMsg }}</div>
       </div>
           </div>
@@ -71,7 +72,6 @@ const avatarInitials = computed(() => {
   return 'MF'
 })
 
-// Form visibility states
 const showUsernameForm = ref(false)
 const showPasswordForm = ref(false)
 
@@ -92,7 +92,6 @@ const togglePasswordForm = () => {
   }
 }
 
-// Change Username
 const newUsername = ref('')
 const usernameChangeMsg = ref('')
 
@@ -111,14 +110,12 @@ const handleChangeUsername = async () => {
     usernameChangeMsg.value = 'Username updated successfully!'
     if (authStore.user) authStore.user.username = newUsername.value
     newUsername.value = ''
-    // Hide the form after successful update
     showUsernameForm.value = false
   } catch (err: any) {
     usernameChangeMsg.value = err.response?.data?.message || 'Failed to update username.'
   }
 }
 
-// Change Password
 const currentPassword = ref('')
 const newPassword = ref('')
 const passwordChangeMsg = ref('')
@@ -144,7 +141,6 @@ const handleChangePassword = async () => {
     passwordChangeMsg.value = 'Password updated successfully!'
     currentPassword.value = ''
     newPassword.value = ''
-    // Hide the form after successful update
     showPasswordForm.value = false
   } catch (err: any) {
     passwordChangeMsg.value = err.response?.data?.message || 'Failed to update password.'
@@ -155,18 +151,16 @@ const notificationTime = ref('09:00')
 const loading = ref(false)
 const notificationMsg = ref('')
 
-// Helper to convert HH:mm string to UTC string
 function localToUtcTimeString(localTimeStr: string) {
   const [hour, minute] = localTimeStr.split(':').map(Number)
   const now = new Date()
   now.setHours(hour, minute, 0, 0)
-  // Get UTC hours and minutes
   const utcHour = now.getUTCHours().toString().padStart(2, '0')
   const utcMinute = now.getUTCMinutes().toString().padStart(2, '0')
   return `${utcHour}:${utcMinute}:00`
 }
 
-// Helper to convert UTC string (HH:mm:ss) to local HH:mm
+
 function utcToLocalTimeString(utcTimeStr: string) {
   const [utcHour, utcMinute] = utcTimeStr.split(':').map(Number)
   const now = new Date()
@@ -206,40 +200,53 @@ const saveTime = async () => {
 
 <style scoped>
 .profile-container {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  padding: 32px 8px;
 }
 
 .profile-card {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(60, 60, 60, 0.12);
-  padding: 40px 32px 32px 32px;
-  max-width: 420px;
-  width: 100%;
+  max-width: 480px;
+  width: 48%;
+  margin-bottom: 2px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(28px) saturate(180%);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(76, 70, 109, 0.18), 0 1.5px 8px 0 rgba(102, 126, 234, 0.10);
+  padding: 25px 32px 8px 32px;
   text-align: center;
   position: relative;
-  animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
+  animation: fadeInCard 0.8s cubic-bezier(0.4,0,0.2,1);
+  transition: box-shadow 0.3s, transform 0.3s;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: auto;
+  max-height: none;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .avatar-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 18px;
 }
 
 .avatar {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   font-size: 2.2rem;
@@ -248,110 +255,329 @@ const saveTime = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.15);
-  margin-bottom: 8px;
+  box-shadow: 0 4px 18px rgba(102, 126, 234, 0.18);
+  margin-bottom: 2px;
   letter-spacing: 1px;
+  border: 2px solid #fff;
+  outline: 2px solid #a18cd1;
+  outline-offset: 1px;
+  position: relative;
 }
 
 .profile-title {
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 18px;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #4f46e5;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
 }
 
 .profile-info {
-  margin-bottom: 24px;
+  margin-bottom: 5px;
+  background: linear-gradient(135deg, #ede9fe 0%, #f3e8ff 100%);
+  border-radius: 12px;
+  padding: 14px 0 10px 0;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.07);
+  border: 1.5px solid #f1f5fa;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 0 8px;
+  margin-bottom: 10px;
+  padding: 0 10px;
+  font-size: 1.2rem;
 }
 
 .info-label {
-  color: #7c3aed;
-  font-weight: 600;
-  font-size: 1.05rem;
+  color: #764ba2;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .info-value {
-  color: #22223b;
-  font-size: 1.05rem;
+  color: #333;
+  font-size: 1.1rem;
   font-weight: 500;
 }
 
-.profile-footer {
-  margin-top: 18px;
-  color: #764ba2;
-  font-size: 1.08rem;
-  font-style: italic;
-}
-
 .change-section {
-  margin-top: 32px;
-  background: #f7f8fa;
-  border-radius: 10px;
-  padding: 20px 16px;
-  box-shadow: 0 2px 12px rgba(60,60,60,0.06);
+  margin-top: 18px;
+  background: rgba(255,255,255,0.82);
+  border-radius: 12px;
+  padding: 14px 12px 10px 12px;
+  box-shadow: 0 2px 12px rgba(60,60,60,0.08);
+  margin-bottom: 12px;
 }
 
 .toggle-btn {
-  background: linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 0;
-  font-weight: 600;
+  border-radius: 10px;
+  padding: 12px 0;
+  font-weight: 700;
   cursor: pointer;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.2px;
 }
 
 .change-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .change-form input {
-  padding: 10px;
-  border: 1.5px solid #e0e3e8;
-  border-radius: 6px;
+  padding: 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.change-form input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .change-form button {
-  background: linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 0;
-  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 4px;
+  font-size: 1rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.2px;
+}
+.change-form button:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b47b6 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .change-msg {
   margin-top: 6px;
-  font-size: 0.98rem;
+  font-size: 0.88rem;
   color: #38a169;
 }
 
-@media (max-width: 600px) {
+.change-section label,
+.change-form input,
+.change-form button {
+  font-size: 1.1rem;
+}
+
+.change-section label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #764ba2;
+  font-size: 0.9rem;
+}
+
+.change-section small {
+  display: block;
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 0.78rem;
+}
+
+#notification-time {
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.change-section button:not(.toggle-btn) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  font-size: 0.9rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.2px;
+}
+
+.change-section button:not(.toggle-btn):hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b47b6 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.change-section button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.change-actions-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+
+.notification-row {
+  margin-top: 18px;
+  background: rgba(255,255,255,0.82);
+  border-radius: 12px;
+  padding: 14px 12px 10px 12px;
+  box-shadow: 0 2px 12px rgba(60,60,60,0.08);
+  margin-bottom: 5px;
+}
+
+.notification-row-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+  margin-bottom: 1px;
+}
+
+.notification-row label {
+  margin-bottom: 0;
+  font-weight: 600;
+  color: #764ba2;
+  font-size: 1.1rem;
+}
+
+.notification-row input[type="time"] {
+  min-width: 48px;
+  max-width: 48px;
+  width: 48px;
+  padding: 2px 2px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+.notification-row button {
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+.notification-row small {
+  display: block;
+  margin-top: 2px;
+  color: #666;
+  font-size: 0.82rem;
+}
+
+.centered-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  padding: 32px 0 18px 0;
+  margin-bottom: 36px;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.08);
+}
+.centered-row {
+  justify-content: center;
+  margin-bottom: 0;
+  padding: 0;
+}
+.info-label {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  color: #764ba2;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.info-icon {
+  font-size: 1.3rem;
+  margin-right: 8px;
+}
+.username-value {
+  font-size: 1.4rem;
+  color: #333;
+  margin-bottom: 18px;
+  text-align: center;
+  word-break: break-all;
+}
+.email-value {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 18px;
+  text-align: center;
+  word-break: break-all;
+}
+
+.notification-info-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
+  color: #4f46e5;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+}
+.notification-info-icon {
+  font-size: 1.3rem;
+}
+
+@media (max-width: 800px) {
   .profile-card {
-    padding: 24px 8px 18px 8px;
+    padding: 12px 2vw 8px 2vw;
+    width: 98%;
+    min-width: unset;
+    max-width: 98vw;
+    max-height: 90vh;
   }
   .profile-title {
     font-size: 1.2rem;
   }
   .avatar {
-    width: 56px;
-    height: 56px;
-    font-size: 1.3rem;
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
   }
+  .change-section {
+    padding: 8px 2vw;
+  }
+}
+
+.notification-save-btn {
+  padding: 2px 10px !important;
+  font-size: 0.8rem !important;
+  border-radius: 5px !important;
+  width: auto !important;
+  min-width: unset !important;
+  max-width: unset !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+}
+.notification-save-btn:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b47b6 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 </style>

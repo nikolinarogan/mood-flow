@@ -50,4 +50,8 @@ export function getAnalyticsSummary() {
   return api.get('/analytics/summary');
 }
 
+export function getCurrentUser() {
+  return api.get('/auth/me');
+}
+
 export default api

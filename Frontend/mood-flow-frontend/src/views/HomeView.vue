@@ -12,7 +12,9 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
       <div class="welcome-header">
         <span class="welcome-icon">🌊</span>
         <h1>Welcome to Mood Flow</h1>
-        <p class="subtitle">Track your mood and emotions with our beautiful diary</p>
+        <p class="subtitle">
+          Your private space to track emotions, reflect on your journey, and discover insights for a happier, healthier you.
+        </p>
       </div>
       
       <div v-if="!isAuthenticated" class="auth-buttons">
@@ -47,18 +49,23 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
       <div class="features">
         <div class="feature">
           <span class="feature-icon">📅</span>
-          <h3>Daily Tracking</h3>
-          <p>Record your mood every day with our intuitive calendar</p>
+          <h3>Effortless Mood Tracking</h3>
+          <p>Log your feelings daily and watch your emotional story unfold.</p>
         </div>
         <div class="feature">
           <span class="feature-icon">📊</span>
-          <h3>Mood Insights</h3>
-          <p>Discover patterns and trends in your emotional well-being</p>
+          <h3>Insightful Analytics</h3>
+          <p>Spot trends and triggers with beautiful, easy-to-read charts.</p>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">💬</span>
+          <h3>Personalized Inspiration</h3>
+          <p>Receive daily quotes and tips tailored to your mood journey.</p>
         </div>
         <div class="feature">
           <span class="feature-icon">🔒</span>
           <h3>Private & Secure</h3>
-          <p>Your personal diary is protected with secure authentication</p>
+          <p>Your diary is encrypted and always under your control.</p>
         </div>
       </div>
     </div>
@@ -66,40 +73,49 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 </template>
 
 <style scoped>
+
 .home-container {
-  min-height: calc(100vh - 70px);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
 }
 
 .welcome-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(160%);
   padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 28px;
+  box-shadow: 0 8px 32px 0 rgba(76, 70, 109, 0.18), 0 1.5px 8px 0 rgba(102, 126, 234, 0.10);
   text-align: center;
   max-width: 600px;
   width: 100%;
+  transition: box-shadow 0.3s, transform 0.3s;
+  animation: fadeInCard 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .welcome-header {
-  margin-bottom: 40px;
+  margin-bottom: 25px;
 }
 
 .welcome-icon {
   font-size: 48px;
   display: block;
   margin-bottom: 16px;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
 }
 
 h1 {
@@ -141,19 +157,16 @@ h1 {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.btn-primary {
+.btn-primary,
+.btn-secondary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  border: none;
 }
 
-.btn-secondary {
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-}
-
+.btn-primary:hover,
 .btn-secondary:hover {
-  background: #667eea;
+  background: linear-gradient(135deg, #5a67d8 0%, #6b47b6 100%);
   color: white;
 }
 
@@ -174,7 +187,7 @@ h1 {
 .welcome-message p {
   color: #666;
   font-size: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .features {

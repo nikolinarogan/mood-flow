@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { getCurrentUser } from '@/services/api'
 import type { User, AuthResponse} from '@/types/auth'
 
 export const useAuthStore = defineStore('auth', {
@@ -59,6 +60,32 @@ export const useAuthStore = defineStore('auth', {
       if (token) {
         this.token = token
         this.isAuthenticated = true
+        try {
+          const res = await getCurrentUser();
+          console.log('getCurrentUser response:', res);
+          if (res.data) {
+            this.user = {
+              id: res.data.id,
+              username: res.data.username,
+              email: res.data.email,
+              isEmailVerified: res.data.isEmailVerified,
+              createdDate: res.data.createdDate,
+              lastLoginAt: res.data.lastLoginAt
+            }
+          }
+        } catch (e) {
+          // Only clear token if error is 401 or 403
+          const err = e as any;
+          if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            this.user = null;
+            this.isAuthenticated = false;
+            this.token = null;
+            localStorage.removeItem('token');
+          } else {
+            // For other errors, keep the token and just log the error
+            console.error('Could not fetch user info, but token is kept:', e);
+          }
+        }
       }
     }
   }

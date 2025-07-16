@@ -53,6 +53,9 @@
               :disabled="loading"
             />
           </div>
+          <div v-if="password" class="password-strength" :class="passwordStrength.toLowerCase()">
+            Strength: {{ passwordStrength }}
+          </div>
         </div>
         
         <button type="submit" :disabled="loading" class="register-btn">
@@ -80,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -93,6 +96,13 @@ const password = ref('')
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
+
+const passwordStrength = computed(() => {
+  if (!password.value) return ''
+  if (password.value.length < 6) return 'Weak'
+  if (password.value.match(/[A-Z]/) && password.value.match(/[0-9]/) && password.value.length >= 8) return 'Strong'
+  return 'Medium'
+})
 
 const handleRegister = async () => {
   try {
@@ -108,7 +118,7 @@ const handleRegister = async () => {
     password.value = ''
     
     setTimeout(() => {
-      router.push('/login')
+      router.push('/')
     }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Registration failed. Please try again.'
@@ -120,12 +130,12 @@ const handleRegister = async () => {
 
 <style scoped>
 .register-container {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 72px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  padding: 20px;
+  padding: 0;
   position: relative;
   overflow: hidden;
 }
@@ -142,16 +152,18 @@ const handleRegister = async () => {
 }
 
 .register-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(24px) saturate(160%);
+  padding: 20px 16px;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px 0 rgba(76, 70, 109, 0.15), 0 1.5px 8px 0 rgba(102, 126, 234, 0.08);
+  max-width: 600px;
+  margin: 0 auto;
+  width: 40%;
   position: relative;
   z-index: 1;
   animation: slideUp 0.6s ease-out;
+  border: 1.5px solid #e0e7ff;
 }
 
 @keyframes slideUp {
@@ -167,7 +179,7 @@ const handleRegister = async () => {
 
 .card-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 18px;
 }
 
 .logo {
@@ -175,18 +187,8 @@ const handleRegister = async () => {
 }
 
 .logo-icon {
-  font-size: 48px;
+  font-size: 44px;
   display: block;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
 }
 
 h2 {
@@ -205,13 +207,13 @@ h2 {
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 label {
@@ -256,7 +258,7 @@ input:disabled {
 }
 
 .register-btn {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 16px;
   border: none;
@@ -290,7 +292,7 @@ input:disabled {
 
 .register-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
 .register-btn:disabled {
@@ -331,9 +333,19 @@ input:disabled {
   animation: shake 0.5s ease-in-out;
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.error-icon {
+  font-size: 16px;
+}
+
 .success-message {
   background: #c6f6d5;
-  color: #38a169;
+  color: #22543d;
   padding: 12px 16px;
   border-radius: 8px;
   margin-top: 16px;
@@ -343,27 +355,8 @@ input:disabled {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  animation: slideIn 0.5s ease-out;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.error-icon,
 .success-icon {
   font-size: 16px;
 }
@@ -389,6 +382,14 @@ input:disabled {
   color: #5a67d8;
   text-decoration: underline;
 }
+
+.password-strength {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.password-strength.weak { color: #e53e3e; }
+.password-strength.medium { color: #d69e2e; }
+.password-strength.strong { color: #38a169; }
 
 @media (max-width: 480px) {
   .register-card {

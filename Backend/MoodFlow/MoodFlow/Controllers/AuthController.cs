@@ -162,5 +162,27 @@ namespace MoodFlow.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "Invalid user token" });
+            }
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            return Ok(new {
+                id = user.Id,
+                username = user.Username,
+                email = user.Email,
+                isEmailVerified = user.IsEmailVerified,
+                createdDate = user.CreatedDate,
+                lastLoginAt = user.LastLoginAt
+            });
+        }
     }
 }

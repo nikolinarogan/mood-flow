@@ -21,12 +21,26 @@ onMounted(() => {
 </template>
 
 <style>
-.app {
-  min-height: 100vh;
+html, body, #app {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
-
+*, *::before, *::after {
+  box-sizing: border-box;
+  max-width: 100vw !important;
+}
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 .main-content {
-  min-height: calc(100vh - 70px);
+  flex: 1 1 auto;
+  overflow-y: auto;
+  width: 100%;
 }
 </style>
 

@@ -9,7 +9,7 @@
       </div>
       
       <div class="nav-menu">
-        <router-link to="/" class="nav-link" active-class="active">
+        <router-link v-if="isAuthenticated" to="/" class="nav-link" active-class="active">
           <span class="nav-icon">🏠</span>
           <span class="nav-text">Home</span>
         </router-link>
@@ -19,32 +19,33 @@
           <span class="nav-text">Diary</span>
         </router-link>
         
-        <router-link v-if="isAuthenticated" to="/profile" class="nav-link" active-class="active">
-          <span class="nav-icon">👤</span>
-          <span class="nav-text">Profile</span>
-        </router-link>
-        
         <router-link v-if="isAuthenticated" to="/analytics" class="nav-link" active-class="active">
           <span class="nav-icon">📊</span>
           <span class="nav-text">Analytics</span>
         </router-link>
         
-        <router-link v-if="!isAuthenticated" to="/login" class="nav-link" active-class="active">
+        <router-link to="/quotes" class="nav-link quotes-link" active-class="active" v-if="isAuthenticated">
+          <span class="nav-icon">💬</span>
+          <span class="nav-text">Quotes</span>
+        </router-link>
+        <router-link to="/favourites" class="nav-link favourites-link" active-class="active" v-if="isAuthenticated">
+          <span class="nav-icon">❤️</span>
+          <span class="nav-text">Favourites</span>
+        </router-link>
+        
+        <router-link v-if="isAuthenticated" to="/profile" class="nav-link" active-class="active">
+          <span class="nav-icon">👤</span>
+          <span class="nav-text">Profile</span>
+        </router-link>
+        
+        <router-link v-if="!isAuthenticated && $route.name !== 'home' && $route.name !== 'login' && $route.name !== 'register'" to="/login" class="nav-link" active-class="active">
           <span class="nav-icon">🔐</span>
           <span class="nav-text">Login</span>
         </router-link>
         
-        <router-link v-if="!isAuthenticated" to="/register" class="nav-link" active-class="active">
+        <router-link v-if="!isAuthenticated && $route.name !== 'home' && $route.name !== 'login' && $route.name !== 'register'" to="/register" class="nav-link" active-class="active">
           <span class="nav-icon">✨</span>
           <span class="nav-text">Register</span>
-        </router-link>
-        <router-link to="/quotes" class="nav-link quotes-link" active-class="active">
-          <span class="nav-icon">💬</span>
-          <span class="nav-text">Quotes</span>
-        </router-link>
-        <router-link to="/favourites" class="nav-link favourites-link" active-class="active">
-          <span class="nav-icon">❤️</span>
-          <span class="nav-text">Favourites</span>
         </router-link>
       </div>
       
@@ -60,10 +61,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const $route = useRoute()
 const authStore = useAuthStore()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)

@@ -78,7 +78,7 @@ const handleLogin = async () => {
     error.value = ''
 
     await authStore.login(email.value, password.value)
-    router.push('/profile')
+    router.push('/')
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Login failed. Please try again.'
   } finally {
@@ -89,12 +89,12 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-container {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 72px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  padding: 20px;
+  padding: 0;
   position: relative;
   overflow: hidden;
 }
@@ -111,16 +111,18 @@ const handleLogin = async () => {
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(24px) saturate(160%);
+  padding: 20px 16px;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px 0 rgba(76, 70, 109, 0.15), 0 1.5px 8px 0 rgba(102, 126, 234, 0.08);
+  max-width: 600px;
+  margin: 0 auto;
+  width: 40%;
   position: relative;
   z-index: 1;
   animation: slideUp 0.6s ease-out;
+  border: 1.5px solid #e0e7ff;
 }
 
 @keyframes slideUp {
@@ -136,7 +138,7 @@ const handleLogin = async () => {
 
 .card-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 18px;
 }
 
 .logo {
@@ -144,18 +146,8 @@ const handleLogin = async () => {
 }
 
 .logo-icon {
-  font-size: 48px;
+  font-size: 44px;
   display: block;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
 }
 
 h2 {
@@ -174,13 +166,13 @@ h2 {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 label {
