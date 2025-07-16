@@ -191,6 +191,9 @@ const saveTime = async () => {
       notificationTime: localToUtcTimeString(notificationTime.value)
     })
     notificationMsg.value = 'Notification time updated!'
+    setTimeout(() => {
+      notificationMsg.value = ''
+    }, 3000)
   } catch (err: any) {
     notificationMsg.value = err.response?.data?.message || 'Failed to update notification time.'
   }
@@ -392,13 +395,19 @@ const saveTime = async () => {
 }
 
 #notification-time {
-  padding: 10px;
+  padding: 8px 12px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.9rem;
   margin-bottom: 8px;
-  width: 100%;
+  width: 120px;
   box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+#notification-time:focus {
+  outline: none;
+  border-color: #667eea;
 }
 
 .change-section button:not(.toggle-btn) {
@@ -457,15 +466,6 @@ const saveTime = async () => {
   font-weight: 600;
   color: #764ba2;
   font-size: 1.1rem;
-}
-
-.notification-row input[type="time"] {
-  min-width: 48px;
-  max-width: 48px;
-  width: 48px;
-  padding: 2px 2px;
-  font-size: 0.9rem;
-  border-radius: 6px;
 }
 
 .notification-row button {

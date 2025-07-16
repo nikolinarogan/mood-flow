@@ -492,14 +492,7 @@ function cancelDeleteEntry() {
 
 onMounted(async () => {
   await loadEntries()
-  selectDate({
-    date: new Date().toISOString().split('T')[0],
-    dayNumber: new Date().getDate(),
-    isCurrentMonth: true,
-    isToday: true,
-    isSelected: true,
-    mood: null
-  })
+  selectedDate.value = new Date()
 })
 </script>
 
