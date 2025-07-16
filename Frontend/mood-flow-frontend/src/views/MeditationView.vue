@@ -13,7 +13,16 @@
     <div v-else class="exercises-content">
       <div class="exercise-grid">
         <div v-for="exercise in exercises" :key="exercise.id" class="exercise-card">
-          <h3 class="exercise-title">{{ exercise.title }}</h3>
+          <div class="exercise-header">
+            <h3 class="exercise-title">{{ exercise.title }}</h3>
+            <button 
+              @click="toggleFavourite(exercise)"
+              :class="['favourite-btn', { 'favourite': exercise.isFavourite }]"
+              :title="exercise.isFavourite ? 'Remove from favourites' : 'Add to favourites'"
+            >
+              {{ exercise.isFavourite ? '❤️' : '🤍' }}
+            </button>
+          </div>
           <div class="video-wrapper">
             <iframe
               :src="exercise.videoUrl"
@@ -32,13 +41,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getMeditationExercises } from '@/services/api'
+import { getMeditationExercises, toggleMeditationFavourite } from '@/services/api'
 
 interface MeditationExercise {
   id: number
   title: string
   videoUrl: string
   description: string
+  isFavourite?: boolean
 }
 
 const loading = ref(true)
@@ -54,6 +64,15 @@ const fetchExercises = async () => {
     exercises.value = []
   } finally {
     loading.value = false
+  }
+}
+
+const toggleFavourite = async (exercise: MeditationExercise) => {
+  try {
+    const response = await toggleMeditationFavourite(exercise.id)
+    exercise.isFavourite = response.data.isFavourite
+  } catch (error) {
+    console.error('Error toggling favourite:', error)
   }
 }
 
@@ -136,12 +155,46 @@ onMounted(async () => {
   transform: translateY(-5px);
 }
 
+.exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .exercise-title {
   color: #2c3e50;
   font-size: 1.4rem;
   font-weight: 600;
-  margin-bottom: 16px;
-  text-align: center;
+  margin: 0;
+  flex: 1;
+}
+
+.favourite-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favourite-btn:hover {
+  transform: scale(1.2);
+}
+
+.favourite-btn.favourite {
+  animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 .video-wrapper {

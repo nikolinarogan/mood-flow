@@ -54,6 +54,14 @@ export function getMeditationExercises() {
   return api.get('/meditation/exercises');
 }
 
+export function toggleMeditationFavourite(exerciseId: number) {
+  return api.post(`/meditation/favourite/${exerciseId}`);
+}
+
+export function getMeditationFavourites() {
+  return api.get('/meditation/favourites');
+}
+
 export function getCurrentUser() {
   return api.get('/auth/me');
 }

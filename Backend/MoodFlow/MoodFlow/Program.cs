@@ -70,6 +70,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IDiaryItemService, DiaryItemService>();
 builder.Services.AddScoped<ISentimentAnalysisService, SentimentAnalysisService>();
+builder.Services.AddScoped<IMeditationService, MeditationService>();
 builder.Services.AddScoped<QuoteService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<DailyReminderService>();

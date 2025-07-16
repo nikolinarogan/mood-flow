@@ -12,6 +12,7 @@ namespace MoodFlow.Data
         public DbSet<Quote> Quotes { get; set; }
         public DbSet<UserQuote> UserQuotes { get; set; }
         public DbSet<MeditationExercise> MeditationExercises { get; set; }
+        public DbSet<UserMeditationExercise> UserMeditationExercises { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,9 @@ namespace MoodFlow.Data
 
             modelBuilder.Entity<UserQuote>()
                 .HasKey(ufq => new { ufq.UserId, ufq.QuoteId });
+
+            modelBuilder.Entity<UserMeditationExercise>()
+                .HasKey(ume => new { ume.UserId, ume.MeditationExerciseId });
         }
     }
 }
