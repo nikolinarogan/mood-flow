@@ -5,15 +5,12 @@
       <p class="subtitle">Track your emotional journey and discover patterns</p>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
       <p>Loading your analytics...</p>
     </div>
 
-    <!-- Analytics Content -->
     <div v-else class="analytics-content">
-      <!-- Summary Cards -->
       <div class="summary-cards">
         <div class="summary-card">
           <div class="card-icon">📊</div>
@@ -48,9 +45,7 @@
         </div>
       </div>
 
-            <!-- Analytics Sections -->
       <div class="analytics-sections">
-        <!-- Weekly Mood Heatmap -->
         <div class="analytics-container">
           <h2>Weekly Mood Pattern (Last 4 Weeks)</h2>
           <div class="weekly-heatmap">
@@ -78,19 +73,19 @@
             <div class="heatmap-legend">
               <div class="legend-item">
                 <div class="legend-color excellent"></div>
-                <span>Excellent (8-10)</span>
+                <span>Excellent (5)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-color good"></div>
-                <span>Good (6-7)</span>
+                <span>Good (4)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-color average"></div>
-                <span>Average (4-5)</span>
+                <span>Average (3)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-color poor"></div>
-                <span>Poor (1-3)</span>
+                <span>Poor (1-2)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-color no-data"></div>
@@ -100,7 +95,6 @@
           </div>
         </div>
 
-        <!-- Monthly Statistics -->
         <div class="analytics-container">
           <h2>Monthly Statistics</h2>
           <div class="monthly-stats">
@@ -124,7 +118,6 @@
         </div>
       </div>
 
-      <!-- Insights Section -->
       <div class="insights-section">
         <h2>Mood Insights</h2>
         <div class="insights-grid">
@@ -170,9 +163,9 @@ const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const getMoodClass = (mood: number | null) => {
   if (mood === null) return 'no-data'
-  if (mood >= 8) return 'excellent'
-  if (mood >= 6) return 'good'
-  if (mood >= 4) return 'average'
+  if (mood === 5) return 'excellent'
+  if (mood === 4) return 'good'
+  if (mood === 3) return 'average'
   return 'poor'
 }
 
@@ -416,8 +409,14 @@ onMounted(async () => {
 
 .monthly-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+@media (max-width: 500px) {
+  .monthly-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
 .stat-item {
