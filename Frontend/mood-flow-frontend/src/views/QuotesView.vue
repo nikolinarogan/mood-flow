@@ -147,12 +147,6 @@ onMounted(async () => {
   font-size: 18px;
 }
 
-.quotes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 .quote-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -289,10 +283,6 @@ onMounted(async () => {
   background: linear-gradient(135deg, #ede9fe 0%, #c7d2fe 100%);
 }
 @media (max-width: 900px) {
-  .quotes-list {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
   .quotes-container {
     max-width: 98vw;
     padding: 20px 10px;

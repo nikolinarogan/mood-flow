@@ -373,12 +373,6 @@ const saveTime = async () => {
   color: #38a169;
 }
 
-.change-section label,
-.change-form input,
-.change-form button {
-  font-size: 1.1rem;
-}
-
 .change-section label {
   display: block;
   margin-bottom: 6px;

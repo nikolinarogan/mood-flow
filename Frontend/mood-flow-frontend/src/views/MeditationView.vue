@@ -194,10 +194,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  .exercise-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .exercise-card {
     padding: 16px;
   }

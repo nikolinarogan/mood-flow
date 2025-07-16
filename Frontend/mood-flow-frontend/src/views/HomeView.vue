@@ -73,7 +73,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 </template>
 
 <style scoped>
-
 .home-container {
   height: 100%;
   display: flex;
@@ -95,7 +94,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
   transition: box-shadow 0.3s, transform 0.3s;
   animation: fadeInCard 0.8s cubic-bezier(0.4,0,0.2,1);
 }
-
 
 @keyframes fadeInCard {
   from {

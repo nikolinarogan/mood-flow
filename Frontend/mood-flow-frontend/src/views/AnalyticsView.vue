@@ -492,10 +492,6 @@ onMounted(async () => {
     font-size: 2rem;
   }
   
-  .charts-section {
-    grid-template-columns: 1fr;
-  }
-  
   .summary-cards {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
