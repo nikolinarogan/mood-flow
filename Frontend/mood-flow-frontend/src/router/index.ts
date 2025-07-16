@@ -7,6 +7,7 @@ import DiaryView from '@/views/DiaryView.vue'
 import QuotesView from '@/views/QuotesView.vue'
 import FavouritesView from '@/views/FavouritesView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
+import MeditationView from '@/views/MeditationView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +51,11 @@ const router = createRouter({
       path: '/analytics',
       name: 'analytics',
       component: AnalyticsView
+    },
+    {
+      path: '/meditation',
+      name: 'meditation',
+      component: MeditationView
     }
   ]
 })

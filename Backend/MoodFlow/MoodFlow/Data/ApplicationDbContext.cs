@@ -11,6 +11,7 @@ namespace MoodFlow.Data
         public DbSet<DiaryItem> DiaryItems { get; set; }
         public DbSet<Quote> Quotes { get; set; }
         public DbSet<UserQuote> UserQuotes { get; set; }
+        public DbSet<MeditationExercise> MeditationExercises { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

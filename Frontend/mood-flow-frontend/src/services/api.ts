@@ -50,6 +50,10 @@ export function getAnalyticsSummary() {
   return api.get('/analytics/summary');
 }
 
+export function getMeditationExercises() {
+  return api.get('/meditation/exercises');
+}
+
 export function getCurrentUser() {
   return api.get('/auth/me');
 }

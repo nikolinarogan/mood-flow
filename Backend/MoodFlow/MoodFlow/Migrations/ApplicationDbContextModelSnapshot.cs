@@ -54,6 +54,31 @@ namespace MoodFlow.Migrations
                     b.ToTable("DiaryItems");
                 });
 
+            modelBuilder.Entity("MoodFlow.Models.MeditationExercise", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MeditationExercises");
+                });
+
             modelBuilder.Entity("MoodFlow.Models.Quote", b =>
                 {
                     b.Property<int>("Id")
@@ -77,9 +102,6 @@ namespace MoodFlow.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Date")
-                        .IsUnique();
 
                     b.ToTable("Quotes");
                 });

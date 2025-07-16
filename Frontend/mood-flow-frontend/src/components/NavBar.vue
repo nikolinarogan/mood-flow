@@ -24,6 +24,11 @@
           <span class="nav-text">Analytics</span>
         </router-link>
         
+        <router-link v-if="isAuthenticated" to="/meditation" class="nav-link" active-class="active">
+          <span class="nav-icon">🧘</span>
+          <span class="nav-text">Meditation</span>
+        </router-link>
+        
         <router-link to="/quotes" class="nav-link quotes-link" active-class="active" v-if="isAuthenticated">
           <span class="nav-icon">💬</span>
           <span class="nav-text">Quotes</span>
