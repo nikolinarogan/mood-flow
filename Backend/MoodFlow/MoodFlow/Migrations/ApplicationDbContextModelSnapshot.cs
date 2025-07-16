@@ -78,6 +78,9 @@ namespace MoodFlow.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Date")
+                        .IsUnique();
+
                     b.ToTable("Quotes");
                 });
 
@@ -108,6 +111,9 @@ namespace MoodFlow.Migrations
 
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan?>("NotificationTime")
+                        .HasColumnType("interval");
 
                     b.Property<string>("Password")
                         .IsRequired()

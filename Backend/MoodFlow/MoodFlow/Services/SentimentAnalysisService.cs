@@ -44,7 +44,7 @@ namespace MoodFlow.Services
                     return huggingFaceResult;
                 }
 
-                // Fallback to Azure Text Analytics (free tier available)
+                // Fallback to Azure Text Analytics 
                 var azureResult = await AnalyzeWithAzureAsync(text);
                 if (azureResult != null)
                 {
@@ -65,7 +65,6 @@ namespace MoodFlow.Services
         {
             var sentiment = await AnalyzeSentimentAsync(text);
             
-            // Map sentiment to emotion based on score and keywords
             return MapSentimentToEmotion(sentiment, text);
         }
 
@@ -198,7 +197,6 @@ namespace MoodFlow.Services
         {
             var lowerText = text.ToLower();
             
-            // Simple keyword-based sentiment analysis
             var positiveWords = new[] { "happy", "great", "excellent", "wonderful", "amazing", "love", "good", "nice", "beautiful", "fantastic", "excited", "joy", "pleased", "satisfied", "grateful", "blessed", "fortunate", "lucky", "thrilled", "delighted" };
             var negativeWords = new[] { "sad", "terrible", "awful", "horrible", "bad", "hate", "angry", "frustrated", "disappointed", "upset", "worried", "anxious", "stressed", "depressed", "miserable", "hopeless", "desperate", "furious", "irritated", "annoyed" };
             var neutralWords = new[] { "okay", "fine", "alright", "normal", "usual", "routine", "ordinary", "average", "standard", "regular", "typical", "common", "neutral", "indifferent", "unconcerned" };
@@ -221,7 +219,7 @@ namespace MoodFlow.Services
             }
 
             var sentimentScore = (positiveCount - negativeCount) / (double)totalWords;
-            sentimentScore = (sentimentScore + 1) / 2; // Normalize to 0-1
+            sentimentScore = (sentimentScore + 1) / 2; 
 
             return new SentimentResponse
             {
@@ -275,7 +273,6 @@ namespace MoodFlow.Services
         {
             var lowerText = text.ToLower();
             
-            // Emotion-specific keywords
             if (lowerText.Contains("excited") || lowerText.Contains("thrilled") || lowerText.Contains("pumped"))
                 return "excited";
             if (lowerText.Contains("happy") || lowerText.Contains("joy") || lowerText.Contains("delighted"))
@@ -291,7 +288,6 @@ namespace MoodFlow.Services
             if (lowerText.Contains("tired") || lowerText.Contains("exhausted") || lowerText.Contains("sleepy"))
                 return "tired";
 
-            // Map sentiment score to emotion
             return sentiment.SentimentScore switch
             {
                 > 0.7 => "happy",

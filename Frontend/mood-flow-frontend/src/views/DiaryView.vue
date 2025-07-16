@@ -195,17 +195,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
 import MoodAlert from '@/components/MoodAlert.vue'
 import { analyzeSentiment } from '@/services/api'
-import { watch } from 'vue'
 import { updateDiaryEntry, deleteDiaryEntry } from '@/services/api'
 
 const authStore = useAuthStore()
 
-// Calendar state
 const currentDate = ref(new Date())
 const selectedDate = ref(new Date())
 const selectedMood = ref('')
@@ -213,16 +211,13 @@ const selectedRating = ref(0)
 const entryNotes = ref('')
 const saving = ref(false)
 const sentiment = ref(null)
-// Update moodEntries type to include id
 const moodEntries = ref<Record<string, { id: number; mood: string; rating: number; notes: string }>>({})
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const selectedEmotionFilter = ref('all')
 const selectedGradeFilter = ref('all')
-const showFilters = ref(false)
 
 const isEditing = ref(false)
-// Update editForm to include id
 const editForm = ref({
   id: 0,
   emotion: '',
@@ -273,7 +268,6 @@ const filteredEntries = computed(() => {
                         entry.mood === selectedEmotionFilter.value
     const gradeMatch = selectedGradeFilter.value === 'all' || 
                       entry.rating?.toString() === selectedGradeFilter.value
-    
     return emotionMatch && gradeMatch
   })
 })
@@ -282,17 +276,16 @@ const clearFilters = () => {
   selectedGradeFilter.value = 'all'
 }
 
-const getFilteredEntriesCount = computed(() => {
-  return filteredEntries.value.length
+const getFilteredEntriesCount = computed(() => filteredEntries.value.length)
+
+watch(entryNotes, async (newNote) => {
+  if (newNote.trim().length > 0) {
+    sentiment.value = await analyzeSentiment(newNote)
+  } else {
+    sentiment.value = null
+  }
 })
-   watch(entryNotes, async (newNote) => {
-     if (newNote.trim().length > 0) {
-       sentiment.value = await analyzeSentiment(newNote)
-     } else {
-       sentiment.value = null
-     }
-   })
-   
+
 const currentMonthYear = computed(() => {
   return currentDate.value.toLocaleDateString('en-US', { 
     month: 'long', 
@@ -313,40 +306,30 @@ const selectedDateMood = computed(() => {
   const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
   return moodEntries.value[dateKey]?.mood || null
 })
-   const selectedDateRating = computed(() => {
-     const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
-     return moodEntries.value[dateKey]?.rating || 0
-   })
+const selectedDateRating = computed(() => {
+  const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
+  return moodEntries.value[dateKey]?.rating || 0
+})
 const calendarDays = computed(() => {
   const year = currentDate.value.getFullYear()
   const month = currentDate.value.getMonth()
-  
   const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
   const startDate = new Date(firstDay)
   startDate.setDate(startDate.getDate() - firstDay.getDay())
-  
   const days = []
   const today = new Date()
-  
   for (let i = 0; i < 42; i++) {
     const date = new Date(startDate)
     date.setDate(startDate.getDate() + i)
-    
     const dateKey = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')}`
     const moodEntry = moodEntries.value[dateKey]
-    
-    // Check if this entry matches current filters
     const emotionMatch = selectedEmotionFilter.value === 'all' || 
                         !moodEntry || 
                         moodEntry.mood === selectedEmotionFilter.value
-    
     const gradeMatch = selectedGradeFilter.value === 'all' || 
                       !moodEntry || 
                       moodEntry.rating?.toString() === selectedGradeFilter.value
-    
     const isVisible = emotionMatch && gradeMatch
-    
     days.push({
       date: dateKey,
       dayNumber: date.getDate(),
@@ -358,7 +341,6 @@ const calendarDays = computed(() => {
       isVisible: isVisible
     })
   }
-  
   return days
 })
 
@@ -379,7 +361,6 @@ const selectDate = (day: any) => {
   const [year, month, dayNum] = day.date.split('-').map(Number)
   selectedDate.value = new Date(year, month - 1, dayNum)
   selectedMood.value = day.mood || ''
-  
   const dateKey = day.date
   const entry = moodEntries.value[dateKey]
   entryNotes.value = entry?.notes || ''
@@ -391,17 +372,13 @@ const selectMood = (mood: string) => {
 
 const saveEntry = async () => {
   if (!selectedMood.value || selectedRating.value === 0) return
-  
   saving.value = true
-  
   try {
     const response = await api.post('/diaryitem/create', {
       emotion: selectedMood.value,
       grade: selectedRating.value,
       note: entryNotes.value
     })
-    
-    // Update local state with the response data
     const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
     moodEntries.value[dateKey] = {
       id: response.data.data.id, // Store the new ID
@@ -409,17 +386,11 @@ const saveEntry = async () => {
       rating: response.data.data.grade,
       notes: response.data.data.note || ''
     }
-    
-    // Reset form
     selectedMood.value = ''
     selectedRating.value = 0
     entryNotes.value = ''
-    
-    // Show success message
-    console.log('Entry saved successfully!')
   } catch (error) {
     console.error('Failed to save entry:', error)
-    // You can add error handling here (show error message to user)
   } finally {
     saving.value = false
   }
@@ -429,7 +400,6 @@ const loadEntries = async () => {
   try {
     const response = await api.get('/diaryitem/all')
     const entries = response.data.data
-
     entries.forEach((entry: any) => {
       const dateObj = new Date(entry.createdAt)
       const dateKey = `${dateObj.getFullYear()}-${(dateObj.getMonth()+1).toString().padStart(2,'0')}-${dateObj.getDate().toString().padStart(2,'0')}`
@@ -471,7 +441,6 @@ async function submitEditEntry() {
       grade: editForm.value.grade,
       note: editForm.value.note
     })
-    // Update local state
     moodEntries.value[dateKey] = {
       id: entry.id,
       mood: editForm.value.emotion,
@@ -522,9 +491,7 @@ function cancelDeleteEntry() {
 }
 
 onMounted(async () => {
- 
   await loadEntries()
-  
   selectDate({
     date: new Date().toISOString().split('T')[0],
     dayNumber: new Date().getDate(),

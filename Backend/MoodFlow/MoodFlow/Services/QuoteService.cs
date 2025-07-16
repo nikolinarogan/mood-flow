@@ -45,7 +45,6 @@ namespace MoodFlow.Services
         {
             var today = DateTime.UtcNow.Date;
             
-            // Remove existing quote for today if it exists
             var existing = _context.Quotes.FirstOrDefault(q => q.Date == today);
             if (existing != null)
             {
@@ -53,7 +52,6 @@ namespace MoodFlow.Services
                 _context.SaveChanges();
             }
 
-            // Fetch new quote from API
             var client = _httpClientFactory.CreateClient();
             var response = client.GetStringAsync("https://zenquotes.io/api/today").Result;
             var json = JsonDocument.Parse(response);

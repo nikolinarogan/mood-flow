@@ -11,19 +11,13 @@ namespace MoodFlow.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<TimeSpan>(
-                name: "NotificationTime",
-                table: "Users",
-                type: "interval",
-                nullable: true);
+            // Removed duplicate NotificationTime column addition
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "NotificationTime",
-                table: "Users");
+            // Removed duplicate NotificationTime column drop
         }
     }
 }
