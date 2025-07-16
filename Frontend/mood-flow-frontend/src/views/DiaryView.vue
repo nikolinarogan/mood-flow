@@ -4,40 +4,29 @@
       <h1>My Mood Diary</h1>
       <p class="diary-subtitle">Track your daily moods and emotions</p>
     </div>
-    <div class="filter-section">
-  <button @click="showFilters = !showFilters" class="filter-toggle">
-    {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
-  </button>
-  
-  <div v-if="showFilters" class="filter-controls">
-    <div class="filter-group">
-      <label>Filter by Emotion:</label>
-      <select v-model="selectedEmotionFilter" class="filter-select">
-        <option v-for="option in emotionFilterOptions" 
-                :key="option.value" 
-                :value="option.value">
-          {{ option.emoji }} {{ option.label }}
-        </option>
-      </select>
+    <div class="filter-bar">
+      <div class="filter-bar-label">
+        <span class="filter-bar-icon">🔎</span>
+        <span class="filter-bar-text">Filters</span>
+      </div>
+      <div class="filter-inline-group">
+        <label class="filter-inline-label">Emotion</label>
+        <select v-model="selectedEmotionFilter" class="filter-pill-select">
+          <option v-for="option in emotionFilterOptions" :key="option.value" :value="option.value">
+            {{ option.emoji }} {{ option.label }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-inline-group">
+        <label class="filter-inline-label">Grade</label>
+        <select v-model="selectedGradeFilter" class="filter-pill-select">
+          <option v-for="option in gradeFilterOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+      <button @click="clearFilters" class="filter-clear-pill" title="Clear filters">✖️</button>
     </div>
-    
-    <div class="filter-group">
-      <label>Filter by Grade:</label>
-      <select v-model="selectedGradeFilter" class="filter-select">
-        <option v-for="option in gradeFilterOptions" 
-                :key="option.value" 
-                :value="option.value">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
-    
-    <button @click="clearFilters" class="clear-filters-btn">
-      Clear Filters
-    </button>
-  </div>
-
-</div>
     <div class="diary-content">
       <div class="calendar-section">
         <div class="calendar-header">
@@ -154,20 +143,54 @@
   </div>
   <!-- Edit Form Modal -->
   <div v-if="isEditing" class="edit-modal">
-    <form @submit.prevent="submitEditEntry" class="edit-form">
+    <form @submit.prevent="submitEditEntry" class="edit-form glassy-card">
+      <h3 class="edit-title">Edit Diary Entry</h3>
       <label>Emotion</label>
-      <select v-model="editForm.emotion">
-        <option v-for="mood in moodOptions" :key="mood.value" :value="mood.value">{{ mood.emoji }} {{ mood.label }}</option>
-      </select>
+      <div class="edit-mood-options">
+        <button 
+          v-for="mood in moodOptions" 
+          :key="mood.value"
+          type="button"
+          :class="['edit-mood-btn', { active: editForm.emotion === mood.value }]"
+          @click="editForm.emotion = mood.value"
+        >
+          <span class="mood-emoji">{{ mood.emoji }}</span>
+        </button>
+      </div>
       <label>Grade</label>
-      <input v-model.number="editForm.grade" type="number" min="1" max="5" />
+      <div class="edit-rating-buttons">
+        <button 
+          v-for="rating in 5" 
+          :key="rating"
+          type="button"
+          :class="['edit-rating-btn', { active: editForm.grade === rating }]"
+          @click="editForm.grade = rating"
+        >
+          <span class="star">{{ rating <= editForm.grade ? '★' : '☆' }}</span>
+        </button>
+      </div>
       <label>Note</label>
-      <textarea v-model="editForm.note" rows="3"></textarea>
-      <div style="margin-top:10px;">
+      <textarea v-model="editForm.note" rows="3" placeholder="Write about your day..."></textarea>
+      <div style="margin-top:16px; display: flex; gap: 10px; justify-content: center;">
         <button type="submit" class="save-btn">Save</button>
         <button type="button" @click="cancelEditEntry" class="cancel-btn">Cancel</button>
       </div>
     </form>
+  </div>
+  <!-- Delete Confirmation Modal -->
+  <div v-if="showDeleteModal" class="edit-modal">
+    <div class="glassy-card delete-modal-card">
+      <div class="delete-modal-icon">⚠️</div>
+      <h3 class="delete-modal-title">Delete Diary Entry?</h3>
+      <p class="delete-modal-text">Are you sure you want to delete this diary entry? This action cannot be undone.</p>
+      <div class="delete-modal-actions">
+        <button @click="confirmDeleteEntry" class="delete-btn" :disabled="deleteInProgress">
+          <span v-if="deleteInProgress" class="loading-spinner"></span>
+          <span v-else>Delete</span>
+        </button>
+        <button @click="cancelDeleteEntry" class="cancel-btn" :disabled="deleteInProgress">Cancel</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -287,11 +310,11 @@ const selectedDateFormatted = computed(() => {
 })
 
 const selectedDateMood = computed(() => {
-  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
   return moodEntries.value[dateKey]?.mood || null
 })
    const selectedDateRating = computed(() => {
-     const dateKey = selectedDate.value.toISOString().split('T')[0]
+     const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
      return moodEntries.value[dateKey]?.rating || 0
    })
 const calendarDays = computed(() => {
@@ -310,7 +333,7 @@ const calendarDays = computed(() => {
     const date = new Date(startDate)
     date.setDate(startDate.getDate() + i)
     
-    const dateKey = date.toISOString().split('T')[0]
+    const dateKey = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')}`
     const moodEntry = moodEntries.value[dateKey]
     
     // Check if this entry matches current filters
@@ -353,7 +376,8 @@ const nextMonth = () => {
 }
 
 const selectDate = (day: any) => {
-  selectedDate.value = new Date(day.date)
+  const [year, month, dayNum] = day.date.split('-').map(Number)
+  selectedDate.value = new Date(year, month - 1, dayNum)
   selectedMood.value = day.mood || ''
   
   const dateKey = day.date
@@ -378,7 +402,7 @@ const saveEntry = async () => {
     })
     
     // Update local state with the response data
-    const dateKey = selectedDate.value.toISOString().split('T')[0]
+    const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
     moodEntries.value[dateKey] = {
       id: response.data.data.id, // Store the new ID
       mood: response.data.data.emotion,
@@ -407,7 +431,8 @@ const loadEntries = async () => {
     const entries = response.data.data
 
     entries.forEach((entry: any) => {
-      const dateKey = new Date(entry.createdAt).toISOString().split('T')[0]
+      const dateObj = new Date(entry.createdAt)
+      const dateKey = `${dateObj.getFullYear()}-${(dateObj.getMonth()+1).toString().padStart(2,'0')}-${dateObj.getDate().toString().padStart(2,'0')}`
       moodEntries.value[dateKey] = {
         id: entry.id, // store id
         mood: entry.emotion,
@@ -421,7 +446,7 @@ const loadEntries = async () => {
 }
 
 function startEditEntry() {
-  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
   const entry = moodEntries.value[dateKey]
   if (entry) {
     editForm.value.id = entry.id
@@ -437,7 +462,7 @@ function cancelEditEntry() {
 }
 
 async function submitEditEntry() {
-  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
   const entry = moodEntries.value[dateKey]
   if (!entry) return
   try {
@@ -462,22 +487,38 @@ async function submitEditEntry() {
   }
 }
 
+const showDeleteModal = ref(false)
+let deleteInProgress = false
 async function deleteCurrentEntry() {
-  const dateKey = selectedDate.value.toISOString().split('T')[0]
+  showDeleteModal.value = true
+}
+
+async function confirmDeleteEntry() {
+  if (deleteInProgress) return;
+  deleteInProgress = true;
+  const dateKey = `${selectedDate.value.getFullYear()}-${(selectedDate.value.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.value.getDate().toString().padStart(2,'0')}`
   const entry = moodEntries.value[dateKey]
-  if (!entry) return
-  if (confirm('Are you sure you want to delete this entry?')) {
-    try {
-      await deleteDiaryEntry(entry.id)
-      // Remove from local state
-      delete moodEntries.value[dateKey]
-      selectedMood.value = ''
-      selectedRating.value = 0
-      entryNotes.value = ''
-    } catch (error) {
-      console.error('Failed to delete entry:', error)
-    }
+  if (!entry) {
+    showDeleteModal.value = false
+    deleteInProgress = false
+    return
   }
+  try {
+    await deleteDiaryEntry(entry.id)
+    delete moodEntries.value[dateKey]
+    selectedMood.value = ''
+    selectedRating.value = 0
+    entryNotes.value = ''
+    showDeleteModal.value = false
+  } catch (error) {
+    console.error('Failed to delete entry:', error)
+    showDeleteModal.value = false
+  } finally {
+    deleteInProgress = false
+  }
+}
+function cancelDeleteEntry() {
+  showDeleteModal.value = false
 }
 
 onMounted(async () => {
@@ -499,13 +540,14 @@ onMounted(async () => {
 .diary-container {
   min-height: calc(100vh - 70px);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  padding: 20px;
+  padding: 12px 20px 20px 20px;
 }
 
 .diary-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 28px;
   color: white;
+  margin-top: 8px;
 }
 
 .diary-header h1 {
@@ -513,6 +555,7 @@ onMounted(async () => {
   font-weight: 700;
   margin-bottom: 8px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 0;
 }
 
 .diary-subtitle {
@@ -870,74 +913,105 @@ onMounted(async () => {
   }
 }
 
-.filter-section {
-  margin-bottom: 20px;
-}
-
-.filter-toggle {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  margin-bottom: 15px;
-}
-
-.filter-controls {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+.filter-bar {
   display: flex;
-  gap: 20px;
-  align-items: end;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.07);
+  border-radius: 16px;
+  border: 1.5px solid rgba(102, 126, 234, 0.10);
+  padding: 10px 18px;
+  margin-bottom: 28px;
+  min-height: 48px;
 }
-
-.filter-group {
+.filter-bar-label {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-right: 10px;
+  letter-spacing: 0.2px;
+  opacity: 0.92;
+}
+.filter-bar-icon {
+  font-size: 1.2em;
+}
+.filter-bar-text {
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.filter-inline-group {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
-
-.filter-group label {
-  font-weight: 600;
+.filter-inline-label {
+  font-size: 14px;
+  color: #4f46e5;
+  font-weight: 500;
+  margin-right: 2px;
+}
+.filter-pill-select {
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1.5px solid #eee;
+  background: rgba(255,255,255,0.95);
+  font-size: 15px;
   color: #333;
-  font-size: 14px;
-}
-
-.filter-select {
-  padding: 8px 12px;
-  border: 2px solid #eee;
-  border-radius: 8px;
-  font-size: 14px;
-  background: white;
-  cursor: pointer;
-}
-
-.filter-select:focus {
   outline: none;
+  transition: border 0.2s;
+  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.04);
+}
+.filter-pill-select:focus {
   border-color: #667eea;
 }
-
-.clear-filters-btn {
-  background: #ff6b6b;
-  color: white;
+.filter-clear-pill {
+  margin-left: auto;
+  background: linear-gradient(135deg, #ff6b6b 0%, #a18cd1 100%);
+  color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.10);
+  transition: background 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
 }
-
-.clear-filters-btn:hover {
-  background: #ff5252;
+.filter-clear-pill:hover {
+  background: linear-gradient(135deg, #e53e3e 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
 }
-
+@media (max-width: 700px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 4vw;
+  }
+  .filter-bar-label {
+    margin-bottom: 2px;
+    margin-right: 0;
+    justify-content: flex-start;
+  }
+  .filter-clear-pill {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
 .calendar-day.filtered-out {
   opacity: 0.3;
   background: rgba(200, 200, 200, 0.5);
@@ -958,99 +1032,119 @@ onMounted(async () => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.3s;
 }
 
-.edit-form {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 500px;
-  position: relative;
-}
-
-.edit-form label {
-  display: block;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.edit-form select,
-.edit-form input {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid #eee;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 20px;
+.glassy-card {
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 8px 32px 0 rgba(102, 126, 234, 0.13), 0 1.5px 8px 0 rgba(118, 75, 162, 0.10);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border-radius: 18px;
+  border: 1.5px solid rgba(102, 126, 234, 0.18);
+  padding: 32px 22px 22px 22px;
+  width: auto;
+  max-width: 340px;
+  min-width: 0;
+  margin: 0 auto;
+  transition: box-shadow 0.2s;
+  animation: popIn 0.25s;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   box-sizing: border-box;
 }
 
-.edit-form select:focus,
-.edit-form input:focus {
+@media (max-width: 480px) {
+  .glassy-card {
+    max-width: 98vw;
+    padding: 18px 4vw 14px 4vw;
+  }
+}
+
+.edit-title {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: #333;
+  letter-spacing: 0.01em;
+}
+
+.edit-mood-options {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.edit-mood-btn {
+  background: rgba(255,255,255,0.7);
+  border: 2px solid #eee;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s;
   outline: none;
-  border-color: #667eea;
+}
+.edit-mood-btn.active, .edit-mood-btn:hover {
+  border: 2px solid #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
+}
+
+.edit-rating-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.edit-rating-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #bbb;
+  transition: color 0.2s, transform 0.2s;
+  outline: none;
+}
+.edit-rating-btn.active, .edit-rating-btn:hover {
+  color: #ffb400;
+  transform: scale(1.15);
 }
 
 .edit-form textarea {
-  width: 100%;
+  background: rgba(255,255,255,0.7);
+  border: 1.5px solid #eee;
+  border-radius: 10px;
+  font-size: 15px;
   padding: 10px;
-  border: 2px solid #eee;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 20px;
-  box-sizing: border-box;
+  margin-bottom: 10px;
+  width: 100%;
   resize: vertical;
+  transition: border 0.2s;
 }
-
 .edit-form textarea:focus {
-  outline: none;
   border-color: #667eea;
 }
 
-.edit-form .save-btn,
-.edit-form .cancel-btn {
-  width: 48%;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-block;
+@keyframes popIn {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
-
-.edit-form .save-btn:hover:not(:disabled),
-.edit-form .cancel-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.edit-form .save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.edit-form .cancel-btn {
-  background: #ff6b6b;
-  margin-left: 4%;
-}
-
-.edit-form .cancel-btn:hover {
-  background: #ff5252;
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 .entry-actions {
   display: flex;
@@ -1090,5 +1184,81 @@ onMounted(async () => {
   background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
   transform: translateY(-2px) scale(1.04);
   box-shadow: 0 4px 16px rgba(255, 107, 107, 0.18);
+}
+.cancel-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #a18cd1 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: auto;
+  min-width: 100px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  margin-left: 0;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cancel-btn:hover {
+  background: linear-gradient(135deg, #e53e3e 0%, #764ba2 100%);
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.18);
+  transform: translateY(-2px);
+}
+.delete-modal-card {
+  max-width: 340px;
+  text-align: center;
+  padding: 32px 22px 22px 22px;
+}
+.delete-modal-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+.delete-modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e53e3e;
+  margin-bottom: 10px;
+}
+.delete-modal-text {
+  color: #333;
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+.delete-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.delete-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: auto;
+  min-width: 100px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.delete-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.18);
+  transform: translateY(-2px);
+}
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style> 

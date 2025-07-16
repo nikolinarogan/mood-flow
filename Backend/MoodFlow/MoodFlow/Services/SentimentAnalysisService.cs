@@ -38,7 +38,6 @@ namespace MoodFlow.Services
 
             try
             {
-                // Try Hugging Face API first (completely free)
                 var huggingFaceResult = await AnalyzeWithHuggingFaceAsync(text);
                 if (huggingFaceResult != null)
                 {

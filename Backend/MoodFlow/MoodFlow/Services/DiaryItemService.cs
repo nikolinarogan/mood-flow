@@ -70,7 +70,6 @@ namespace MoodFlow.Services
             if (existingEntry != null)
                 throw new InvalidOperationException("An entry already exists for today");
 
-            // Analyze sentiment and suggest emotion
             var suggestedEmotion = "neutral";
             if (!string.IsNullOrWhiteSpace(note))
             {
