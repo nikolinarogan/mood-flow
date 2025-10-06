@@ -30,7 +30,7 @@ namespace MoodFlow.Data
                 .HasForeignKey(di => di.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<DiaryItem>()
+            modelBuilder.Entity<DiaryItem>() //revents a user from having two diary items on the same date/time.
                 .HasIndex(di => new { di.UserId, di.CreatedAt })
                 .IsUnique();
 

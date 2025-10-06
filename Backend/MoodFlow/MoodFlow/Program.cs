@@ -6,31 +6,31 @@ using MoodFlow.Data;
 using MoodFlow.Services;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args); //webappbuilder setting dependency inj, logs, configuration
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer(); //used for swagger, allows minimal apis to be discovered for swagger
+builder.Services.AddSwaggerGen(); //swager ui
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "MoodFlow API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme //telling swagger my api uses jwt for authentication
     {
-        In = ParameterLocation.Header,
+        In = ParameterLocation.Header, //token will be sent in http header
         Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        Scheme = "Bearer" //name of the security scheme
+    }); //this enables users to auth in swagger lockkey icon
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { //tels wich endpoints require auth
         {
             new OpenApiSecurityScheme {
-                Reference = new OpenApiReference {
+                Reference = new OpenApiReference { //points to Bearer
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
-            },
+            }, //all endpoints use auth
             new string[] {}
         }
     });
@@ -55,17 +55,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
+            ValidateIssuer = true, //Prevents accepting tokens from unknown sources.
+            ValidateAudience = true, //Ensures the token is intended for your application, not another one.
+            ValidateLifetime = true, //Makes sure the token is not expired
+            ValidateIssuerSigningKey = true, //Ensures the token was digitally signed using the correct key.
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
-
+//DI setup, Scoped one instance per http requ
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IDiaryItemService, DiaryItemService>();

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import api from '@/services/api'
 import { getCurrentUser } from '@/services/api'
 import type { User, AuthResponse} from '@/types/auth'
-
+//This is a Pinia store for managing authentication state
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
